@@ -40,12 +40,15 @@ Write-Host "3/5 Chromium dedicato per Playwright"
 
 Write-Host "4/5 Configurazione"
 if (-not (Test-Path config\device.toml)) {
-  (Get-Content config\device.example.toml) `
+  (Get-Content config\device.example.toml -Encoding UTF8) `
     -replace '^app_adapter = "mock"', 'app_adapter = "native"' `
     -replace '^tts_engine = "browser"', 'tts_engine = "kokoro"' `
     -replace '^# calcolatrice = \["calc.exe"\]', 'calcolatrice = ["calc.exe"]' `
     -replace '^# "blocco note" = \["notepad.exe"\]', '"blocco note" = ["notepad.exe"]' |
-    Set-Content config\device.toml -Encoding UTF8
+    Out-String | ForEach-Object {
+      # UTF-8 senza BOM: Set-Content -Encoding UTF8 di PowerShell 5.1 aggiunge il BOM
+      [System.IO.File]::WriteAllText((Join-Path (Get-Location) "config\device.toml"), $_, (New-Object System.Text.UTF8Encoding $false))
+    }
   Write-Host "   creato config\device.toml (calcolatrice e blocco note approvate)"
 }
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }

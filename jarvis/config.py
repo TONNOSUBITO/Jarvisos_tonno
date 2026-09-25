@@ -139,7 +139,8 @@ def load_config(path: str | os.PathLike | None = None) -> DeviceConfig:
     path = Path(path or os.environ.get("JARVIS_CONFIG", "config/device.toml"))
     if not path.exists():
         return DeviceConfig()
-    raw = tomllib.loads(path.read_text(encoding="utf-8"))
+    # utf-8-sig: accetta file salvati con BOM (PowerShell 5.1, alcuni editor Windows)
+    raw = tomllib.loads(path.read_text(encoding="utf-8-sig"))
     perms = dict(DEFAULT_PERMISSIONS)
     for cap, mode in (raw.get("permissions") or {}).items():
         if mode not in VALID_MODES:

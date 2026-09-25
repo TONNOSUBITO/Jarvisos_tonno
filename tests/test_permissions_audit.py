@@ -51,3 +51,9 @@ def test_redaction(tmp_path):
     log.write("x", args={"token": "token=xyz123"})
     rec = json.loads((tmp_path / "a.jsonl").read_text())
     assert "xyz123" not in json.dumps(rec) and rec["device"] == "dev"
+
+
+def test_config_with_utf8_bom(tmp_path):
+    f = tmp_path / "d.toml"
+    f.write_bytes("﻿[device]\ndevice_id = \"fisso\"\n".encode("utf-8"))
+    assert load_config(f).device_id == "fisso"
