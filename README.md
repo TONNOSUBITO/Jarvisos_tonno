@@ -26,7 +26,8 @@ azioni delicate e ti risponde anche a voce. **Non è un sistema operativo**: «O
 
 ## Installazione
 
-Requisiti: Python 3.11+ ([python.org](https://www.python.org/downloads/), su Windows spunta «Add to PATH»),
+Requisiti: Python **3.11, 3.12 o 3.13**, non 3.14, che la voce locale non supporta ancora
+([python.org](https://www.python.org/downloads/): scegli 3.13 e spunta «Add to PATH»),
 ~1,5 GB liberi (Chromium ~150 MB, modelli voce ~500 MB, dipendenze). Nessun permesso di amministratore.
 
 **Windows** (PowerShell nella cartella del progetto):

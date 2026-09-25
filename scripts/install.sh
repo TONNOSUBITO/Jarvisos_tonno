@@ -5,8 +5,15 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-PY=${PYTHON:-python3}
-"$PY" -c 'import sys; assert sys.version_info >= (3, 11), "serve Python 3.11+"'
+# Serve Python 3.11–3.13: la voce locale (kokoro-onnx) non supporta ancora 3.14.
+OK='import sys; sys.exit(0 if (3, 11) <= sys.version_info[:2] <= (3, 13) else 1)'
+PY=${PYTHON:-}
+if [ -z "$PY" ]; then
+  for c in python3.13 python3.12 python3.11 python3; do
+    if command -v "$c" >/dev/null && "$c" -c "$OK"; then PY=$c; break; fi
+  done
+fi
+[ -n "$PY" ] && "$PY" -c "$OK" || { echo "Serve Python 3.11, 3.12 o 3.13 (non 3.14)"; exit 1; }
 
 echo "1/5 Ambiente virtuale .venv"
 [ -d .venv ] || "$PY" -m venv .venv

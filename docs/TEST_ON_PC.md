@@ -14,6 +14,7 @@ Esegui `python -m jarvis doctor` dopo l'installazione: stampa sistema, CPU, thre
 | Browser in cui apri Jarvis | | |
 
 ## 1. Installazione
+Installa **Python 3.13** (non 3.14) da python.org spuntando «Add to PATH». L'installer lo cerca da solo.
 Segui il README (sezione Installazione). Nessun comando richiede privilegi di amministratore.
 Poi apri `config/device.toml` e controlla:
 - `device_id` ("portatile" o "fisso");

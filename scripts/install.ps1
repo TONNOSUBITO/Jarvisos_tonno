@@ -6,21 +6,30 @@
 $ErrorActionPreference = "Stop"
 Set-Location (Join-Path $PSScriptRoot "..")
 
-# Usa il launcher "py -3" se presente, altrimenti "python" nel PATH.
-$py = "python"; $ver = @()
+# Serve Python 3.11, 3.12 o 3.13: la voce locale (kokoro-onnx) non supporta ancora 3.14.
+# Cerca prima con il launcher "py" (sceglie tra più versioni installate), poi "python" nel PATH.
+$okCheck = "import sys; sys.exit(0 if (3, 11) <= sys.version_info[:2] <= (3, 13) else 1)"
+$py = $null; $ver = @()
 if (Get-Command py -ErrorAction SilentlyContinue) {
-  & py -3 -c "import sys" 2>$null
-  if ($LASTEXITCODE -eq 0) { $py = "py"; $ver = @("-3") }
+  foreach ($v in @("-3.13", "-3.12", "-3.11")) {
+    & py $v -c $okCheck 2>$null
+    if ($LASTEXITCODE -eq 0) { $py = "py"; $ver = @($v); break }
+  }
 }
-if (-not (Get-Command $py -ErrorAction SilentlyContinue)) {
-  throw "Python non trovato. Installa Python 3.11+ da https://www.python.org/downloads/ (spunta 'Add to PATH')."
+if (-not $py -and (Get-Command python -ErrorAction SilentlyContinue)) {
+  & python -c $okCheck 2>$null
+  if ($LASTEXITCODE -eq 0) { $py = "python" }
 }
+if (-not $py) {
+  throw "Serve Python 3.11, 3.12 o 3.13 (non 3.14). Installa Python 3.13 da https://www.python.org/downloads/ (spunta 'Add to PATH') e rilancia."
+}
+Write-Host "   uso: $py $ver"
 function Check($what) { if ($LASTEXITCODE -ne 0) { throw "Fallito: $what (codice $LASTEXITCODE)" } }
 
 Write-Host "1/5 Ambiente virtuale .venv"
 if (-not (Test-Path .venv)) { & $py @ver -m venv .venv; Check "creazione .venv" }
 $vpy = ".\.venv\Scripts\python.exe"
-& $vpy -c "import sys; assert sys.version_info >= (3, 11), 'serve Python 3.11+'"; Check "versione Python"
+& $vpy -c $okCheck; Check "versione Python della .venv (serve 3.11-3.13; elimina .venv se creata con un'altra versione)"
 & $vpy -m pip install --upgrade pip | Out-Null
 
 Write-Host "2/5 Dipendenze (voce locale inclusa)"
