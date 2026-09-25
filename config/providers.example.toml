@@ -1,9 +1,10 @@
 
 # ---- Provider di modelli (accodare a config/device.toml) ----
+# Solo caratteri ASCII: si puo' accodare con PowerShell 5.1 senza problemi di codifica.
 # Ordine = ordine di fallback: prima i gratuiti e veloci, per ultimi quelli a pagamento.
-# Le chiavi vanno SOLO nel file .env (qui c'è il NOME della variabile, mai la chiave).
+# Le chiavi vanno SOLO nel file .env (qui c'e' il NOME della variabile, mai la chiave).
 # Un provider senza chiave nel .env viene saltato. I provider con paid = true restano bloccati
-# finché in [model] non imposti allow_paid = true e in [limits] un budget_eur > 0.
+# finche' in [model] non imposti allow_paid = true e in [limits] un budget_eur > 0.
 # Endpoint e nomi dei modelli verificati sulle documentazioni ufficiali il 25/09/2026.
 
 [[model.providers]]
@@ -50,7 +51,7 @@ api_key_env = "TOGETHER_API_KEY"
 paid = true
 
 [[model.providers]]
-name = "anthropic"                  # a pagamento; livello di compatibilità "non per produzione"
+name = "anthropic"                  # a pagamento; livello di compatibilita' "non per produzione"
 base_url = "https://api.anthropic.com/v1/"
 model = "claude-haiku-4-5-20251001"
 api_key_env = "ANTHROPIC_API_KEY"

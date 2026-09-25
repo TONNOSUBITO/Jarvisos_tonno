@@ -72,3 +72,10 @@ def test_providers_example_file(tmp_path, monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "k2")
     fb = build_provider(cfg.model, BudgetMeter(0))
     assert [p.name for p in fb.providers] == ["gemini", "anthropic"] and not fb.allow_paid
+
+
+def test_providers_example_is_ascii():
+    """PowerShell 5.1 (Get-Content | Add-Content) riscrive i non-ASCII in ANSI: il file deve restare ASCII."""
+    from pathlib import Path
+
+    Path("config/providers.example.toml").read_bytes().decode("ascii")
