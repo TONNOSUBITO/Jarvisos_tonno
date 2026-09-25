@@ -19,7 +19,7 @@ azioni delicate e ti risponde anche a voce. **Non è un sistema operativo**: «O
 | Memoria su richiesta («ricorda che…», «cosa ricordi», «dimentica…»), ricerca nelle note | ✅ |
 | Domande libere e compiti multi-passo con un modello (Ollama locale / OmniRoute) | ✅ con modello simulato; ❓ mai collegato a un modello reale |
 | Permessi per capacità, conferme monouso, anti-esfiltrazione, budget, audit | ✅ |
-| Windows | ❓ CI su Windows configurata; installazione mai eseguita su un PC Windows |
+| Windows | ✅ test automatici verdi su Windows (GitHub Actions); ❓ installer mai eseguito su un PC Windows reale |
 | Controllo dell'altro PC, sincronizzazione vault, HUD/Cockpit | ❌ volutamente rimandati (vedi [ROADMAP](docs/ROADMAP.md)) |
 
 ✅ = funziona ed è testato · ❓ = implementato, da verificare sul tuo PC · ❌ = non fatto

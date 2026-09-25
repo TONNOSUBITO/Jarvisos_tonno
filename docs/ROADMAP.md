@@ -19,7 +19,7 @@ UI, router a regole, browser Playwright, app (mock), note con conferma, permessi
 | Misure reali: `stt_ms`, `audio_s`, `prima_risposta_audio_ms`, `model_ms` in UI e audit | ✅ |
 | `NativeAppAdapter` (Popen senza shell) | 🧪 |
 | Installer Linux | ✅ eseguito su un clone pulito in cloud |
-| Installer Windows | 🧪 non eseguito (niente Windows in cloud); test automatici su Windows via CI |
+| Installer Windows | 🧪 script non eseguito; **CI su Windows verde** il 25/09/2026 (installazione dipendenze voce, Chromium, 80 test, doctor) |
 | `jarvis doctor`, `jarvis models` (hash SHA-256) | ✅ |
 | Scorciatoia push-to-talk globale (fuori dal browser) | ❌ richiede hook di tastiera di sistema: rimandata |
 
