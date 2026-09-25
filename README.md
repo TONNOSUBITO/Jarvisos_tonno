@@ -33,8 +33,9 @@ Requisiti: Python **3.11, 3.12 o 3.13**, non 3.14, che la voce locale non suppor
 **Windows** (PowerShell nella cartella del progetto):
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\install.ps1
-scripts\run.bat
 ```
+Poi doppio clic sull'icona **Jarvis** sul desktop (oppure `scripts\run.bat`).
+
 **Linux**:
 ```bash
 bash scripts/install.sh
@@ -88,7 +89,7 @@ Con un provider cloud, i tuoi comandi escono dal PC. File, memoria e note restan
 
 ## Fermare e disinstallare
 - Fermare: **■ Stop** o tasto Esc (ferma attività, voce e browser), poi Ctrl+C nel terminale.
-- Disinstallare: elimina la cartella del progetto (contiene `.venv`, `data/`, modelli, vault predefinita) e,
+- Disinstallare: elimina l'icona Jarvis dal desktop e la cartella del progetto (contiene `.venv`, `data/`, modelli, vault predefinita) e,
   se vuoi, la cache di Playwright (`%USERPROFILE%\AppData\Local\ms-playwright` su Windows, `~/.cache/ms-playwright` su Linux).
   Nessun servizio, avvio automatico o chiave di registro viene creato.
 
