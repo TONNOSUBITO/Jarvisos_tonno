@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jarvis</title>
+<style>
+  :root { --bg:#f6f7f9; --fg:#1b1f24; --muted:#5b6470; --card:#fff; --line:#d9dde3;
+          --accent:#1f6feb; --danger:#c62828; --ok:#2e7d32; --warn:#b26a00; --rec:#d81b60; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1216; --fg:#e6e9ed; --muted:#9aa4b0; --card:#171b21; --line:#2a313a;
+            --accent:#58a6ff; --danger:#ff6b6b; --ok:#5fd07a; --warn:#f2b44b; --rec:#ff5c93; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:16px; display:grid; gap:12px; }
+  header { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  header h1 { font-size:20px; margin:0; flex:1; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  input[type=text], textarea { flex:1; min-width:200px; padding:10px; font:inherit; border:1px solid var(--line);
+                     border-radius:6px; background:var(--bg); color:var(--fg); }
+  textarea { width:100%; min-height:160px; font:13px/1.4 ui-monospace, monospace; }
+  button { font:inherit; padding:10px 14px; border-radius:6px; border:1px solid var(--line);
+           background:var(--card); color:var(--fg); cursor:pointer; touch-action:none; }
+  button.small { padding:4px 8px; font-size:13px; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  button.stop { background:var(--danger); color:#fff; border-color:var(--danger); font-weight:600; }
+  button#talk.rec { background:var(--rec); color:#fff; border-color:var(--rec); }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  .status { font-weight:600; padding:2px 8px; border-radius:10px; border:1px solid var(--line); }
+  .s-completato { color:var(--ok); } .s-errore, .s-fermato { color:var(--danger); }
+  .s-attesa_conferma { color:var(--warn); } .s-in_ascolto { color:var(--rec); }
+  pre { white-space:pre-wrap; word-break:break-word; margin:0; font:13px/1.4 ui-monospace, monospace; }
+  .muted { color:var(--muted); font-size:13px; }
+  #confirm { border-color:var(--warn); display:none; }
+  ul { margin:4px 0; padding-left:20px; }
+  li { margin:2px 0; }
+  h2 { font-size:15px; margin:0 0 6px; }
+  .pill { font-size:12px; border:1px solid var(--line); border-radius:10px; padding:1px 8px; color:var(--muted); }
+  .warn { color:var(--warn); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Jarvis <span class="muted">· dispositivo <b>__DEVICE_ID__</b></span></h1>
+    <button class="stop" id="stopAll" title="Ferma tutte le attività, la voce e chiude il browser">■ Stop</button>
+  </header>
+  <div class="row muted" id="info"></div>
+
+  <section class="card">
+    <form id="cmdForm" class="row">
+      <button type="button" id="talk" title="Tieni premuto per parlare (oppure tieni premuta la barra spaziatrice)">🎤 Tieni premuto</button>
+      <input type="text" id="cmd" maxlength="500" autocomplete="off"
+             placeholder="«cerca e apri meteo Roma», «apri calcolatrice», «prepara una nota: …», «ricorda che …»">
+      <button class="primary" type="submit">Invia</button>
+    </form>
+    <p class="muted" id="micHint">Il microfono è attivo solo mentre tieni premuto. L'audio non viene salvato.</p>
+  </section>
+
+  <section class="card" id="confirm">
+    <h2>Conferma richiesta</h2>
+    <pre id="confirmPreview"></pre>
+    <div class="row" style="margin-top:8px">
+      <button class="primary" id="approve">Conferma questa azione</button>
+      <button id="reject">Rifiuta</button>
+    </div>
+    <p class="muted">La conferma autorizza solo l'azione mostrata, una volta.</p>
+  </section>
+
+  <section class="card">
+    <h2>Attività corrente <span class="status" id="status">—</span> <span class="pill" id="level"></span></h2>
+    <div class="muted" id="command"></div>
+    <div id="plan"></div>
+    <p><b>Risultato:</b> <span id="result"></span></p>
+    <p class="muted" id="report"></p>
+    <p class="muted" id="metrics"></p>
+    <details><summary>Log</summary><pre id="log"></pre></details>
+  </section>
+
+  <section class="card">
+    <h2>Memoria <span class="muted">(«ricorda che …», «dimentica …»)</span></h2>
+    <ul id="memory"></ul>
+  </section>
+
+  <section class="card">
+    <h2>Note nella vault</h2>
+    <ul id="notes"></ul>
+    <div id="editor" style="display:none">
+      <p class="muted" id="editPath"></p>
+      <textarea id="editText"></textarea>
+      <div class="row"><button class="primary small" id="saveNote">Salva modifiche</button>
+        <button class="small" id="closeNote">Chiudi</button></div>
+    </div>
+  </section>
+</main>
+<script>
+const TOKEN = "__JARVIS_TOKEN__";
+const H = { "Content-Type": "application/json", "X-Jarvis-Token": TOKEN };
+const $ = (id) => document.getElementById(id);
+let current = null, INFO = {}, lastRelease = null, spokenFor = new Set(), mine = new Set(), audioEl = null;
+
+async function api(method, url, body, raw) {
+  const opts = { method, headers: raw ? { "X-Jarvis-Token": TOKEN, "Content-Type": "audio/wav" } : H,
+                 body: raw ? body : (body ? JSON.stringify(body) : undefined) };
+  const r = await fetch(url, opts);
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.status);
+  return r.status === 204 ? null : r;
+}
+const jget = async (u) => (await api("GET", u)).json();
+
+// ---------- push-to-talk ----------
+let rec = null;
+async function startRec() {
+  if (rec) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+    const ctx = new AudioContext();
+    const src = ctx.createMediaStreamSource(stream);
+    const proc = ctx.createScriptProcessor(4096, 1, 1);
+    const chunks = [];
+    proc.onaudioprocess = (e) => chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+    src.connect(proc); proc.connect(ctx.destination);
+    rec = { stream, ctx, proc, chunks, t0: performance.now() };
+    $("talk").classList.add("rec"); $("talk").textContent = "● Sto ascoltando…";
+    $("status").textContent = "in_ascolto"; $("status").className = "status s-in_ascolto";
+    stopSpeaking();
+  } catch (e) { $("micHint").textContent = "Microfono non disponibile: " + e.message; $("micHint").className = "warn"; }
+}
+async function stopRec() {
+  if (!rec) return;
+  const r = rec; rec = null;
+  lastRelease = performance.now();
+  r.proc.disconnect(); r.stream.getTracks().forEach(t => t.stop());  // microfono spento subito
+  const rate = r.ctx.sampleRate; await r.ctx.close();
+  $("talk").classList.remove("rec"); $("talk").textContent = "🎤 Tieni premuto";
+  const len = r.chunks.reduce((n, c) => n + c.length, 0);
+  if (len / rate < 0.3) { $("status").textContent = "troppo breve"; return; }
+  if (len / rate > (INFO.max_audio_s || 30)) { $("status").textContent = "troppo lungo"; return; }
+  const all = new Float32Array(len); let o = 0; for (const c of r.chunks) { all.set(c, o); o += c.length; }
+  const wav = encodeWav(downsample(all, rate, 16000), 16000);
+  try { const t = await (await api("POST", "/api/voice", wav, true)).json(); mine.add(t.id); render(t); }
+  catch (e) { $("status").textContent = "errore voce: " + e.message; }
+}
+function downsample(buf, from, to) {
+  if (from === to) return buf;
+  const ratio = from / to, out = new Float32Array(Math.floor(buf.length / ratio));
+  for (let i = 0; i < out.length; i++) {           // media sul blocco: semplice anti-alias
+    const s = Math.floor(i * ratio), e = Math.min(buf.length, Math.floor((i + 1) * ratio));
+    let acc = 0; for (let j = s; j < e; j++) acc += buf[j]; out[i] = acc / Math.max(1, e - s);
+  }
+  return out;
+}
+function encodeWav(samples, rate) {
+  const b = new ArrayBuffer(44 + samples.length * 2), v = new DataView(b);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, "RIFF"); v.setUint32(4, 36 + samples.length * 2, true); w(8, "WAVE"); w(12, "fmt ");
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36, "data"); v.setUint32(40, samples.length * 2, true);
+  for (let i = 0; i < samples.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, samples[i])) * 0x7fff, true);
+  return new Blob([b], { type: "audio/wav" });
+}
+const talk = $("talk");
+talk.addEventListener("pointerdown", (e) => { e.preventDefault(); talk.setPointerCapture(e.pointerId); startRec(); });
+talk.addEventListener("pointerup", stopRec);
+talk.addEventListener("pointercancel", stopRec);
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space" && !e.repeat && !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) { e.preventDefault(); startRec(); }
+  if (e.key === "Escape") $("stopAll").click();
+});
+document.addEventListener("keyup", (e) => { if (e.code === "Space" && rec) { e.preventDefault(); stopRec(); } });
+
+// ---------- risposta vocale ----------
+function stopSpeaking() {
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  if (audioEl) { audioEl.pause(); audioEl = null; }
+}
+async function speak(t) {
+  // parla solo per comandi dati da questa pagina, una volta
+  if (!mine.has(t.id) || !INFO.speak_replies || INFO.tts === "none" || spokenFor.has(t.id) || !t.result) return;
+  spokenFor.add(t.id);
+  const text = t.result.slice(0, 600);
+  const started = () => {
+    if (lastRelease && t.source === "voce") {
+      const ms = Math.round(performance.now() - lastRelease);
+      api("POST", "/api/tasks/" + t.id + "/metric", { name: "prima_risposta_audio_ms", value: ms }).catch(() => {});
+      lastRelease = null;
+    }
+  };
+  try {
+    const r = await api("POST", "/api/tts", { text });
+    if (r) {
+      audioEl = new Audio(URL.createObjectURL(await r.blob()));
+      audioEl.onplaying = started; await audioEl.play(); return;
+    }
+  } catch (e) { $("micHint").textContent = "Voce server non disponibile (" + e.message + "): uso quella del browser"; }
+  if (window.speechSynthesis) {
+    const u = new SpeechSynthesisUtterance(text); u.lang = "it-IT"; u.onstart = started; speechSynthesis.speak(u);
+  }
+}
+
+// ---------- rendering ----------
+const TERMINAL = ["completato", "fermato", "errore"];
+function render(t) {
+  if (!t) return;
+  current = t;
+  $("status").textContent = t.status; $("status").className = "status s-" + t.status;
+  $("level").textContent = "livello " + t.level + " · " + t.source;
+  $("command").textContent = t.command ? "«" + t.command + "»" : "";
+  $("plan").innerHTML = t.plan.length ? "<b>Piano:</b><ul>" + t.plan.map(() => "<li></li>").join("") + "</ul>" : "";
+  $("plan").querySelectorAll("li").forEach((li, i) => {
+    const s = t.steps[i];
+    li.textContent = t.plan[i].description + (s ? (s.ok ? " ✔" : " ✖") + " (" + s.duration_ms + " ms)" : "");
+  });
+  $("result").textContent = t.result; $("report").textContent = t.report;
+  const m = Object.entries(t.metrics || {}).map(([k, v]) => k + ": " + v);
+  $("metrics").textContent = m.length ? "Misure: " + m.join(" · ") : "";
+  $("log").textContent = t.log.join("\n");
+  const p = t.pending;
+  $("confirm").style.display = p ? "block" : "none";
+  if (p) { $("confirmPreview").textContent = p.preview; $("confirm").dataset.hash = p.action_hash; }
+  if (TERMINAL.includes(t.status) && t.status !== "fermato") speak(t);
+}
+function li(text, buttons) {
+  const el = document.createElement("li"); el.append(text + " ");
+  for (const [label, fn] of buttons) { const b = document.createElement("button"); b.className = "small"; b.textContent = label; b.onclick = fn; el.append(b, " "); }
+  return el;
+}
+async function refresh() {
+  try {
+    const s = await jget("/api/state");
+    render(current ? s.tasks.find(t => t.id === current.id) || s.tasks[0] : s.tasks[0]);
+    INFO = await jget("/api/info");
+    $("info").innerHTML = "";
+    for (const txt of ["voce→testo: " + INFO.stt, "risposta vocale: " + INFO.tts,
+                       "modello: " + INFO.model, "spesa: " + INFO.spesa_eur + " / " + INFO.budget_eur + " €"]) {
+      const sp = document.createElement("span"); sp.className = "pill"; sp.textContent = txt; $("info").append(sp);
+    }
+    const v = await jget("/api/vault");
+    $("notes").innerHTML = "";
+    for (const n of v.notes) $("notes").append(li(n, [["Modifica", () => openNote(n)], ["Elimina", async () => {
+      if (confirm("Eliminare " + n + "?")) { await api("DELETE", "/api/vault/note?path=" + encodeURIComponent(n)); refresh(); } }]]));
+    if (!v.notes.length) $("notes").innerHTML = "<li class='muted'>nessuna nota</li>";
+    const mem = await jget("/api/memory");
+    $("memory").innerHTML = "";
+    for (const f of mem.facts) $("memory").append(li(f, []));
+    if (!mem.facts.length) $("memory").innerHTML = "<li class='muted'>non ricordo nulla</li>";
+  } catch (e) { $("status").textContent = "errore UI: " + e.message; }
+}
+async function openNote(path) {
+  const n = await jget("/api/vault/note?path=" + encodeURIComponent(path));
+  $("editor").style.display = "block"; $("editPath").textContent = path; $("editText").value = n.content;
+}
+$("saveNote").onclick = async () => {
+  try { await api("PUT", "/api/vault/note?path=" + encodeURIComponent($("editPath").textContent), { content: $("editText").value }); $("editor").style.display = "none"; refresh(); }
+  catch (e) { alert("Non salvata: " + e.message); }
+};
+$("closeNote").onclick = () => { $("editor").style.display = "none"; };
+
+$("cmdForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const text = $("cmd").value.trim(); if (!text) return;
+  stopSpeaking(); lastRelease = null;
+  const t = await (await api("POST", "/api/command", { text })).json(); mine.add(t.id); render(t);
+  $("cmd").value = "";
+};
+$("stopAll").onclick = async () => { stopSpeaking(); await api("POST", "/api/stop"); refresh(); };
+async function answer(approve) {
+  if (!current) return;
+  try { await api("POST", "/api/tasks/" + current.id + "/confirm", { action_hash: $("confirm").dataset.hash, approve }); }
+  catch (e) { alert("Conferma non accettata: " + e.message); }
+  refresh();
+}
+$("approve").onclick = () => answer(true);
+$("reject").onclick = () => answer(false);
+setInterval(refresh, 700);
+refresh();
+</script>
+</body>
+</html>

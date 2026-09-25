@@ -1,0 +1,56 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Dipendenze
+        run: python -m pip install -e ".[dev,voice,tts]"
+      - name: Chromium per Playwright
+        run: python -m playwright install --with-deps chromium
+        if: runner.os == 'Linux'
+      - name: Chromium per Playwright (Windows)
+        run: python -m playwright install chromium
+        if: runner.os == 'Windows'
+      - name: Test
+        run: python -m pytest -q
+      - name: Doctor
+        run: python -m jarvis doctor
+
+  # Esegue l'installer reale su Windows (come farebbe l'utente) e poi il test voce
+  # reale Kokoro → Whisper con i modelli scaricati e verificati dall'installer.
+  installer-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: scripts\install.ps1
+        shell: powershell
+        run: powershell -ExecutionPolicy Bypass -File scripts\install.ps1
+      - name: Config creata dall'installer
+        shell: powershell
+        run: Get-Content config\device.toml | Select-String -Pattern 'app_adapter|tts_engine|calcolatrice|blocco note'
+      - name: Test voce reale su Windows
+        shell: powershell
+        env:
+          JARVIS_REQUIRE_VOICE_MODELS: "1"
+        run: |
+          .\.venv\Scripts\python.exe -m pip install pytest pytest-asyncio
+          .\.venv\Scripts\python.exe -m pytest -q tests/test_voice.py -rs
