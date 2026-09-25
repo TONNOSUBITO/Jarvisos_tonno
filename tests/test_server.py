@@ -27,7 +27,7 @@ def test_token_required(cfg, apps):
         assert c.post("/api/command", json={"text": "apri calcolatrice"}).status_code == 401
         assert c.post("/api/stop", headers={"X-Jarvis-Token": "no"}).status_code == 401
         html = c.get("/").text
-        assert "tok" in html and "Stop" in html
+        assert "tok" in html and "STOP" in html and "J.A.R.V.I.S." in html
 
 
 def test_foreign_host_rejected(cfg, apps):
@@ -59,3 +59,10 @@ def test_stop_endpoint(cfg, apps):
         poll(c, tid, lambda t: t["status"] == "attesa_conferma")
         assert c.post("/api/stop", headers=H).json()["stopped"] == [tid]
         poll(c, tid, lambda t: t["status"] == "fermato")
+
+
+def test_info_has_real_system_data(cfg, apps):
+    with client(cfg, apps) as c:
+        info = c.get("/api/info", headers={"X-Jarvis-Token": "tok"}).json()
+        total, free = info["ram_gb"]
+        assert 0 < free <= total and info["provider"] == ""

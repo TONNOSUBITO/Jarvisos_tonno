@@ -21,6 +21,7 @@ from jarvis.core.orchestrator import Orchestrator
 from jarvis.audio.base import AudioError, VoiceUnavailable, wav_to_float32
 from jarvis.memory.vault import VaultError
 from jarvis.tools.permissions import Decision
+from jarvis.tools_cli import mem_gb
 
 MAX_AUDIO_BYTES = 4 * 1024 * 1024
 
@@ -115,6 +116,8 @@ def create_app(cfg: DeviceConfig, orch: Orchestrator, token: str | None = None,
             "model": "attivo" if orch.agent and orch.policy.decide("model.chat") is not Decision.DENY else "disattivato",
             "spesa_eur": round(orch.budget.spent_eur, 6) if orch.budget else 0.0,
             "budget_eur": cfg.limits.budget_eur,
+            "provider": orch.last_provider,
+            "ram_gb": [round(x, 1) for x in ram] if (ram := mem_gb()) else None,  # [totale, libera]
         }
 
     @app.post("/api/voice", dependencies=[Depends(auth)])

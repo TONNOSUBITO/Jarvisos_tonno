@@ -9,7 +9,7 @@ azioni delicate e ti risponde anche a voce. **Non è un sistema operativo**: «O
 
 | Funzione | Stato |
 |---|---|
-| UI web locale: parla/scrivi, stato, piano, conferme, risultato, log, **Stop**, misure, memoria, note | ✅ provata in cloud (Chromium headless) |
+| Interfaccia HUD stile J.A.R.V.I.S.: anello centrale = tasto per parlare (colore e rotazione seguono lo stato, pulsa col livello reale del microfono), pannelli con soli dati reali (attività, risultato, RAM libera, voce, modello/provider, spesa, memoria, note), **Stop** | ✅ provata in cloud (Chromium headless) e sul portatile (comandi scritti) |
 | Push-to-talk (tasto o barra spaziatrice) → trascrizione locale (faster-whisper) | ✅ provata in cloud con **microfono simulato** (file audio); ❓ microfono reale da provare sul PC |
 | Risposta vocale locale Kokoro (voci italiane `if_sara`, `im_nicola`) / voce del browser | ✅ Kokoro provato in cloud; ❓ qualità d'ascolto da giudicare tu |
 | Comandi a regole in italiano (costo zero, nessuna rete) | ✅ |
@@ -20,7 +20,7 @@ azioni delicate e ti risponde anche a voce. **Non è un sistema operativo**: «O
 | Domande libere e compiti multi-passo con un modello (provider cloud con tua chiave API) | ✅ con modello simulato; ❓ mai collegato a un modello reale |
 | Permessi per capacità, conferme monouso, anti-esfiltrazione, budget, audit | ✅ |
 | Windows | ✅ test e installer verdi su Windows in GitHub Actions (voce reale inclusa); ❓ mai su un PC Windows reale |
-| Controllo dell'altro PC, sincronizzazione vault, HUD/Cockpit | ❌ volutamente rimandati (vedi [ROADMAP](docs/ROADMAP.md)) |
+| Controllo dell'altro PC, sincronizzazione vault, Cockpit multi-dispositivo | ❌ volutamente rimandati (vedi [ROADMAP](docs/ROADMAP.md)) |
 
 ✅ = funziona ed è testato · ❓ = implementato, da verificare sul tuo PC · ❌ = non fatto
 

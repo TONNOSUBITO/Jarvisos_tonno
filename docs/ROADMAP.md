@@ -61,4 +61,5 @@ frase «Cerca e apri documentazione» → trascritta correttamente, eseguita; `s
 | Secondo PC | ❌ stesso installer con `device_id` diverso, **dopo** l'approvazione del primo |
 | Sincronizzazione vault (es. Syncthing) | ❌ |
 | Controllo remoto via rete privata con autenticazione | ❌ volutamente non fatto prima dei test di sicurezza sul PC |
-| HUD / Cockpit sullo stesso stato | ❌ dopo i test funzionali |
+| HUD sullo stesso stato (`jarvis/web/index.html`) | ✅ SVG + CSS, nessuna libreria; solo dati reali da `/api/state` e `/api/info` (RAM libera, provider). Misura in Chromium: thread principale ~0,8% (polling), animazioni sul compositor e in pausa dopo 30 s di inattività; `prefers-reduced-motion` rispettato |
+| Cockpit multi-dispositivo | ❌ dopo il secondo PC |

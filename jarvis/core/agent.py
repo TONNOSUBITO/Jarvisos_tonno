@@ -73,6 +73,7 @@ class Agent:
             while True:
                 resp = await self.provider.complete(messages, tools or None, self.timeout_s)
                 task.add_log(f"Modello: {resp.provider or 'n/d'}")
+                orch.last_provider = resp.provider or ""
                 if not resp.tool_calls:
                     return resp.text.strip() or "(nessuna risposta dal modello)"
                 task.level = 3

@@ -113,3 +113,9 @@ async def test_write_never_overwrites(wd, cfg, apps):
     assert (await tool.run({"path": "nuovo.md", "content": "ciao"})).ok
     r = await tool.run({"path": "nuovo.md", "content": "altro"})
     assert not r.ok and (wd / "nuovo.md").read_text() == "ciao"
+
+
+async def test_remember_same_fact_twice_is_not_duplicated(orch):
+    await confirm_and_wait(orch, "ricorda che preferisco il tè")
+    t, _ = await confirm_and_wait(orch, "ricorda che preferisco il tè")
+    assert "Lo sapevo già" in t.result and len(orch.memory.facts()) == 1

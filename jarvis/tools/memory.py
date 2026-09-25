@@ -38,6 +38,11 @@ class MemoryStore:
     def add(self, fact: str) -> None:
         self._write(self.facts() + [f"{fact.strip()} _(aggiunto {time.strftime('%Y-%m-%d')})_"])
 
+    def known(self, fact: str) -> bool:
+        """Il fatto è già in memoria (a meno della data di aggiunta)?"""
+        f = fact.strip().lower()
+        return any(x.split(" _(aggiunto ")[0].strip().lower() == f for x in self.facts())
+
     def matching(self, query: str) -> list[str]:
         q = query.lower().strip()
         return [f for f in self.facts() if q and q in f.lower()]
@@ -63,6 +68,8 @@ class RememberTool(Tool):
             return ToolResult(False, "Niente da ricordare")
         if contains_secret(fact):
             return ToolResult(False, "Sembra un segreto (password/chiave): non lo memorizzo")
+        if self.store.known(fact):
+            return ToolResult(True, f"Lo sapevo già: «{fact}»", {"file": MEMORY_FILE}, verified=True)
         self.store.add(fact)
         ok = any(fact in f for f in self.store.facts())
         return ToolResult(ok, f"Ricorderò: «{fact}»", {"file": MEMORY_FILE}, verified=ok)
