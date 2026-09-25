@@ -57,7 +57,7 @@ async def test_level3_tools_and_untrusted_wrapping(agent_cfg, apps, site_url):
     p = MockProvider([tools_resp(call("web_search", query="documentazione")),
                       tools_resp(call("web_open", url=site_url + "/docs.html")), "Ho trovato la documentazione."])
     o = build_orchestrator(agent_cfg, apps, provider=p)
-    t = await o.wait(o.submit("trovami la documentazione di prova").id)
+    t = await o.wait(o.submit("mi serve la documentazione di prova").id)
     assert t.status is Status.DONE and t.level == 3, t.result
     assert [s.tool for s in t.steps] == ["web.search", "web.open"]
     tool_msgs = [m for m in p.calls[-1] if m["role"] == "tool"]

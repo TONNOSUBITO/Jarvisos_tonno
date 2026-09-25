@@ -45,3 +45,9 @@ async def test_local_network_blocked_by_default(orch, cfg, site_url):
     cfg.browser.allow_local_network = False
     t = await orch.wait(orch.submit(f"apri il sito {site_url}/docs.html").id)
     assert t.status is Status.ERROR and "rete locale bloccato" in t.result
+
+
+async def test_search_blocked_by_antibot_is_explained(orch, cfg, site_url):
+    cfg.browser.search_url = site_url + "/blocked.html?q={q}"
+    t = await orch.wait(orch.submit("cerca meteo").id)
+    assert t.status is Status.ERROR and "anti-robot" in t.result and "resta aperta" in t.result

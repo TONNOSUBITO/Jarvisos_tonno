@@ -7,6 +7,7 @@ come lista di argomenti senza shell. Gli adapter nativi NON sono testati in clou
 from __future__ import annotations
 
 import asyncio
+import re
 import shutil
 import subprocess
 from abc import ABC, abstractmethod
@@ -70,7 +71,9 @@ class OpenAppTool(Tool):
         self.adapter = adapter
 
     def resolve(self, app: str) -> list[str] | None:
-        return self.allowed.get(app.strip().lower())
+        # "la calcolatrice", "il Blocco note" → nome in allowlist (articoli del parlato)
+        name = re.sub(r"^(?:il|lo|la|l'|i|gli|le|un|uno|una|un')\s*", "", app.strip().lower())
+        return self.allowed.get(name) or self.allowed.get(app.strip().lower())
 
     async def run(self, args: dict[str, Any]) -> ToolResult:
         app = args["app"]

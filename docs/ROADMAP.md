@@ -35,6 +35,9 @@ CPU diversa, NON è un benchmark del tuo PC), frase di 3,8 s:
 | Kokoro fp32 (`kokoro-v1.0.onnx`) | 1,01 s (RTF 0,27) | scelto |
 | Kokoro int8 (`kokoro-v1.0.int8.onnx`) | 6,43 s (RTF 1,68) | **scartato**: più piccolo ma 6× più lento su questa CPU |
 
+**E2E voce su Windows (GitHub Actions `windows-latest`, 25/09/2026)**: UI reale + microfono simulato di Chromium,
+frase «Cerca e apri documentazione» → trascritta correttamente, eseguita; `stt_ms` 1003, `prima_risposta_audio_ms` 3963.
+
 ## Fase 3 — modelli e memoria
 | Elemento | Stato |
 |---|---|
