@@ -44,6 +44,19 @@ model = "command-a-plus-05-2026"
 api_key_env = "COHERE_API_KEY"
 
 [[model.providers]]
+name = "huggingface"                # router di Hugging Face: piano gratuito con crediti mensili
+base_url = "https://router.huggingface.co/v1"
+model = "openai/gpt-oss-120b:fastest"
+api_key_env = "HF_TOKEN"
+
+[[model.providers]]
+name = "nvidia"                     # crediti gratuiti non verificati: trattato come a pagamento
+base_url = "https://integrate.api.nvidia.com/v1"
+model = "meta/llama-3.1-70b-instruct"
+api_key_env = "NVIDIA_API_KEY"
+paid = true
+
+[[model.providers]]
 name = "together"                   # crediti iniziali che scadono: trattato come a pagamento
 base_url = "https://api.together.ai/v1"
 model = "openai/gpt-oss-120b"       # supporta gli strumenti (docs.together.ai)
@@ -55,4 +68,32 @@ name = "anthropic"                  # a pagamento; livello di compatibilita' "no
 base_url = "https://api.anthropic.com/v1/"
 model = "claude-haiku-4-5-20251001"
 api_key_env = "ANTHROPIC_API_KEY"
+paid = true
+
+[[model.providers]]
+name = "deepseek"                   # a pagamento
+base_url = "https://api.deepseek.com"
+model = "deepseek-flash"
+api_key_env = "DEEPSEEK_API_KEY"
+paid = true
+
+[[model.providers]]
+name = "fireworks"                  # a pagamento; modello d'esempio della documentazione
+base_url = "https://api.fireworks.ai/inference/v1"
+model = "accounts/fireworks/models/llama-v3p1-8b-instruct"
+api_key_env = "FIREWORKS_API_KEY"
+paid = true
+
+[[model.providers]]
+name = "openai"                     # a pagamento: 0.1 / 0.5 USD per milione di token
+base_url = "https://api.openai.com/v1"
+model = "gpt-6-luna"
+api_key_env = "OPENAI_API_KEY"
+paid = true
+
+[[model.providers]]
+name = "xai"                        # a pagamento: da 1.25 / 2.50 USD per milione di token
+base_url = "https://api.x.ai/v1"
+model = "grok-4.3"
+api_key_env = "XAI_API_KEY"
 paid = true

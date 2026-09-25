@@ -86,8 +86,18 @@ Provider pronti in [`config/providers.example.toml`](config/providers.example.to
 | 4 | Mistral | `MISTRAL_API_KEY` | `mistral-large-latest` | gratuito, limiti bassi |
 | 5 | OpenRouter | `OPENROUTER_API_KEY` | `qwen/qwen3.8-27b:free` | solo modelli `:free` |
 | 6 | Cohere | `COHERE_API_KEY` | `command-a-plus-05-2026` | trial |
-| 7 | Together | `TOGETHER_API_KEY` | `openai/gpt-oss-120b` | `paid = true` (crediti che scadono) |
-| 8 | Anthropic | `ANTHROPIC_API_KEY` | `claude-haiku-4-5-20251001` | `paid = true` |
+| 7 | Hugging Face | `HF_TOKEN` | `openai/gpt-oss-120b:fastest` | crediti mensili gratuiti |
+| 8 | NVIDIA | `NVIDIA_API_KEY` | `meta/llama-3.1-70b-instruct` | `paid = true` (crediti gratuiti non verificati) |
+| 9 | Together | `TOGETHER_API_KEY` | `openai/gpt-oss-120b` | `paid = true` (crediti che scadono) |
+| 10 | Anthropic | `ANTHROPIC_API_KEY` | `claude-haiku-4-5-20251001` | `paid = true` |
+| 11 | DeepSeek | `DEEPSEEK_API_KEY` | `deepseek-flash` | `paid = true` |
+| 12 | Fireworks | `FIREWORKS_API_KEY` | `accounts/fireworks/models/llama-v3p1-8b-instruct` | `paid = true` |
+| 13 | OpenAI | `OPENAI_API_KEY` | `gpt-6-luna` | `paid = true` |
+| 14 | xAI | `XAI_API_KEY` | `grok-4.3` | `paid = true` |
+
+Non inclusi: GitHub Models (ritirato il 30/07/2026), SambaNova (URL dell'API non trovato nella documentazione ufficiale).
+Il supporto agli strumenti (tool calling) di DeepSeek, Fireworks e xAI non è confermato dalle pagine lette:
+senza strumenti rispondono solo a domande.
 
 1. Metti le chiavi che hai **solo** nel file `.env` (mai in chat, nel TOML o su GitHub). Quelle che non metti
    vengono saltate.

@@ -52,7 +52,7 @@ async def test_openai_compatible_provider_with_mock_transport():
 
 
 def test_providers_example_file(tmp_path, monkeypatch):
-    """config/providers.example.toml accodato a device.toml: 8 provider, saltati quelli senza chiave."""
+    """config/providers.example.toml accodato a device.toml: 14 provider, saltati quelli senza chiave."""
     from pathlib import Path
 
     from jarvis.config import load_config
@@ -61,12 +61,14 @@ def test_providers_example_file(tmp_path, monkeypatch):
     f = tmp_path / "device.toml"
     f.write_text('[model]\nenabled = true\n' + Path("config/providers.example.toml").read_text(encoding="utf-8"),
                  encoding="utf-8")
-    for var in ("GROQ", "CEREBRAS", "GEMINI", "MISTRAL", "OPENROUTER", "COHERE", "TOGETHER", "ANTHROPIC"):
-        monkeypatch.delenv(f"{var}_API_KEY", raising=False)
+    for p in load_config(f).model.providers:
+        monkeypatch.delenv(p.api_key_env, raising=False)
     cfg = load_config(f)
     assert [p.name for p in cfg.model.providers] == [
-        "groq", "cerebras", "gemini", "mistral", "openrouter", "cohere", "together", "anthropic"]
-    assert [p.name for p in cfg.model.providers if p.paid] == ["together", "anthropic"]
+        "groq", "cerebras", "gemini", "mistral", "openrouter", "cohere", "huggingface",
+        "nvidia", "together", "anthropic", "deepseek", "fireworks", "openai", "xai"]
+    assert [p.name for p in cfg.model.providers if not p.paid] == [
+        "groq", "cerebras", "gemini", "mistral", "openrouter", "cohere", "huggingface"]
     assert build_provider(cfg.model, BudgetMeter(0)) is None  # nessuna chiave → nessun provider
     monkeypatch.setenv("GEMINI_API_KEY", "k")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "k2")

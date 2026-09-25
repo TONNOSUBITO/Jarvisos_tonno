@@ -12,6 +12,7 @@ R = RuleRouter()
     ("cerca su internet ricetta carbonara", "web_search", {"query": "ricetta carbonara"}),
     ("cerca e apri documentazione Python", "web_search_open", {"query": "documentazione Python"}),
     ("Cerca i apri documentazioni.", "web_search_open", {"query": "documentazioni"}),
+    ("Cerca e apprì documentazione.", "web_search_open", {"query": "documentazione"}),
     ("cerca ed apri meteo", "web_search_open", {"query": "meteo"}),
     ("apri il primo risultato per orari treni", "web_search_open", {"query": "orari treni"}),
     ("apri il sito example.com", "web_open", {"url": "example.com"}),
