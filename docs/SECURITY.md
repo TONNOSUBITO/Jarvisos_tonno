@@ -15,10 +15,23 @@
 | Segreti in log/vault | `redact()` su tutto l'audit; la vault rifiuta contenuti che sembrano segreti |
 | Profilo browser personale | profilo dedicato in `data/browser-profile`, download disattivati |
 | Path traversal nella vault | percorsi risolti e confinati alla radice, solo `.md` |
+| Microfono sempre acceso | push-to-talk: il flusso audio si apre alla pressione e si chiude al rilascio; nessuna parola di attivazione |
+| Registrazioni conservate | l'audio resta in memoria per la trascrizione e viene scartato; nel registro finisce solo il testo del comando (max 500 caratteri) |
+| Modello che agisce da solo | il modello propone soltanto: ogni chiamata passa da `Orchestrator._execute` (permessi, conferme, `max_steps`, timeout, audit); strumenti inesistenti o argomenti non validi vengono rifiutati |
+| Prompt injection verso il modello | risultati dei tool racchiusi tra `<<<DATO_NON_FIDATO>>>` e istruzioni di sistema esplicite; una conferma rifiutata ferma l'agente |
+| Esfiltrazione di dati privati | tool con dati privati (file, memoria, note) invisibili al modello salvo `allow_private_data`; dopo averli letti, `web.*` richiede conferma con URL completo in anteprima |
+| File di segreti | `files.read` rifiuta `.env`, chiavi, `*password*`, `*token*`, `cookies*` ecc.; memoria e vault rifiutano testo che sembra un segreto |
+| Cancellazioni irreversibili | `files.delete` sposta in `.cestino-jarvis/` nella stessa cartella; nessuna sovrascrittura in `files.write`/`files.move` |
+| File operazioni fuori dalla cartella | `work_dir` unica, percorsi risolti e confinati, cestino non raggiungibile dai comandi |
+| Modelli voce manomessi | `jarvis models` verifica SHA-256 dei file Kokoro (hash registrati al primo download del 25/09/2026 dalla release ufficiale) |
+| TTS cloud involontario | Fish richiede `tts_engine = "fish"` **e** permesso `tts.cloud`; la UI mostra «CLOUD: il testo esce dal PC» |
 
 ## Permessi
 Tre livelli per capacità e per dispositivo (`config/device.toml`): `auto`, `confirm`, `deny`.
-Capacità non elencate = `deny`. Default: app approvate, ricerca e lettura web, bozze = `auto`; salvataggio nota = `confirm`; modelli e shell = `deny`.
+Capacità non elencate = `deny`. Default:
+- `auto`: app approvate, ricerca e lettura web, bozze, elenco memoria, ricerca note, elenco/lettura file in `work_dir`;
+- `confirm`: salvataggio nota, «ricorda», «dimentica», creazione/spostamento/cestino file;
+- `deny`: modelli (`model.chat`), TTS cloud (`tts.cloud`), shell (`shell.exec`, non modificabile).
 
 Da Fase 3–4, **sempre `confirm`**: invio email/messaggi, pubblicazione, acquisti, download/esecuzione, installazioni,
 spostamento/cancellazione di molti file, uso di credenziali, modifica permessi o impostazioni importanti,
@@ -43,4 +56,7 @@ Mai in chat, commit o vault.
 ## Limiti noti
 - Il token è visibile a chi ha accesso al desktop locale: Jarvis non protegge da un utente/malware già sul PC.
 - La rilevazione dei segreti è a pattern: può sbagliare in entrambi i sensi.
+- Hash dei modelli Kokoro: registrati da me al primo download (fiducia al primo uso), non pubblicati dall'autore.
+- Whisper viene scaricato da Hugging Face tramite le librerie, senza hash fissato da Jarvis.
+- Un modello locale piccolo può seguire comunque istruzioni malevole presenti nei dati: i permessi restano l'ultima difesa.
 - `check_url` risolve il DNS prima della navigazione; un rebinding tra controllo e navigazione resta teoricamente possibile (mitigato dal ricontrollo dell'URL finale).
