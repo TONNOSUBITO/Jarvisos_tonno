@@ -73,16 +73,25 @@ agent_tools = true
 allow_private_data = false       # true = file/memoria/note possono andare al modello
 
 # Provider in ordine di fallback. La chiave va nel .env: qui solo il NOME della variabile.
+# Endpoint OpenAI-compatibili verificati sulla documentazione ufficiale il 25/09/2026.
+# Sul Ryzen 3 3200U un modello locale (Ollama) è troppo lento: usa un provider cloud.
 # [[model.providers]]
-# name = "ollama-locale"
-# base_url = "http://127.0.0.1:11434/v1"
-# model = "qwen3:1.7b"
+# name = "groq"
+# base_url = "https://api.groq.com/openai/v1"
+# model = "<modello dal sito Groq>"
+# api_key_env = "GROQ_API_KEY"
 #
 # [[model.providers]]
-# name = "omniroute"
-# base_url = "http://127.0.0.1:20128/v1"
-# model = "auto"
-# api_key_env = "OMNIROUTE_API_KEY"
+# name = "gemini"
+# base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+# model = "<modello Gemini>"
+# api_key_env = "GEMINI_API_KEY"
+#
+# [[model.providers]]
+# name = "openrouter"
+# base_url = "https://openrouter.ai/api/v1"
+# model = "<modello con suffisso :free>"
+# api_key_env = "OPENROUTER_API_KEY"
 # paid = false                   # metti true se la rotta può costare
-# price_in_per_mtok_eur = 0.0
+# price_in_per_mtok_eur = 0.0    # per il contatore spesa
 # price_out_per_mtok_eur = 0.0
