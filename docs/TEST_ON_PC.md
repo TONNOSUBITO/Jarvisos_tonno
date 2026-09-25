@@ -10,7 +10,7 @@ Tempo stimato: 30–45 minuti, più i download (~700 MB).
 - voce Kokoro: più lenta del cloud; se `prima_risposta_audio_ms` supera ~4000, usa `tts_engine = "browser"`;
 - la GPU integrata non viene usata: tutto gira su CPU; tieni il portatile **collegato alla corrente**
   (a batteria la CPU rallenta);
-- modello locale facoltativo: prova `qwen3:1.7b`; `qwen3:4b` sta in RAM ma sarà probabilmente lento.
+- modello locale: **sconsigliato** (misura in cloud: `qwen3:1.7b` su 2 core oltre 5 minuti per risposta); per le domande libere usa un provider cloud con chiave API (README).
 
 ## 0. Annota il sistema
 Esegui `python -m jarvis doctor` dopo l'installazione: stampa sistema, CPU, thread e RAM.

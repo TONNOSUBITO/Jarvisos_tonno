@@ -48,3 +48,32 @@ async def test_openai_compatible_provider_with_mock_transport():
     r = await p.complete([{"role": "user", "content": "hi"}])
     assert r.text == "ciao"
     assert seen["url"].endswith("/v1/chat/completions") and seen["auth"] == "Bearer k"
+
+
+def test_multiple_providers_from_config(tmp_path, monkeypatch):
+    from jarvis.config import load_config
+    from jarvis.providers.base import build_provider
+
+    f = tmp_path / "d.toml"
+    f.write_text("""[model]
+enabled = true
+[[model.providers]]
+name = "groq"
+base_url = "https://api.groq.com/openai/v1"
+model = "m1"
+api_key_env = "GROQ_API_KEY"
+[[model.providers]]
+name = "gemini"
+base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+model = "m2"
+api_key_env = "GEMINI_API_KEY"
+paid = true
+""")
+    monkeypatch.setenv("GROQ_API_KEY", "k1")
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    cfg = load_config(f)
+    fb = build_provider(cfg.model, BudgetMeter(0))
+    assert [p.name for p in fb.providers] == ["groq", "gemini"]
+    assert fb.providers[0].api_key == "k1" and fb.providers[1].api_key == ""
+    assert fb.providers[1].is_paid and not fb.allow_paid
+    assert fb.providers[1].base_url == "https://generativelanguage.googleapis.com/v1beta/openai"

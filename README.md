@@ -17,7 +17,7 @@ azioni delicate e ti risponde anche a voce. **Non è un sistema operativo**: «O
 | Apertura app approvate | ✅ con adapter simulato; ❓ app reali sul PC |
 | File in una cartella autorizzata (elenca, leggi, crea, sposta, cestina con conferma) | ✅ |
 | Memoria su richiesta («ricorda che…», «cosa ricordi», «dimentica…»), ricerca nelle note | ✅ |
-| Domande libere e compiti multi-passo con un modello (Ollama locale / OmniRoute) | ✅ con modello simulato; ❓ mai collegato a un modello reale |
+| Domande libere e compiti multi-passo con un modello (provider cloud con tua chiave API) | ✅ con modello simulato; ❓ mai collegato a un modello reale |
 | Permessi per capacità, conferme monouso, anti-esfiltrazione, budget, audit | ✅ |
 | Windows | ✅ test e installer verdi su Windows in GitHub Actions (voce reale inclusa); ❓ mai su un PC Windows reale |
 | Controllo dell'altro PC, sincronizzazione vault, HUD/Cockpit | ❌ volutamente rimandati (vedi [ROADMAP](docs/ROADMAP.md)) |
@@ -71,21 +71,48 @@ Tutto in `config/device.toml` (uno per PC, non va su GitHub). Le voci principali
 - `[model]` + `[[model.providers]]`: modelli per domande libere (vedi sotto). Disattivati di default.
 - Chiavi (es. OmniRoute) solo in `.env`, mai nel TOML.
 
-### Attivare un modello (facoltativo)
-Locale e gratuito con [Ollama](https://ollama.com) (installalo dal sito ufficiale), poi `ollama pull qwen3:1.7b`:
-```toml
-[permissions]
-"model.chat" = "auto"
-[model]
-enabled = true
-[[model.providers]]
-name = "ollama"
-base_url = "http://127.0.0.1:11434/v1"
-model = "qwen3:1.7b"
-```
-Oppure OmniRoute (gateway verso molti provider, alcuni gratuiti con quote): `base_url = "http://127.0.0.1:20128/v1"`.
-Con un provider cloud, i tuoi comandi escono dal PC. File, memoria e note restano esclusi finché non imposti
-`allow_private_data = true`.
+### Attivare un modello (facoltativo): chiavi API di uno o più provider
+Serve solo per domande libere e compiti che le regole non coprono. Sul Ryzen 3 3200U un modello **locale**
+non è praticabile (misura: `qwen3:1.7b` su 2 core oltre 5 minuti per risposta), quindi si usa un provider cloud.
+
+1. Crea una chiave sul sito del provider (molti hanno un piano gratuito con limiti).
+2. Mettila **solo** nel file `.env` del PC, mai in chat, nel TOML o su GitHub:
+   ```
+   GROQ_API_KEY=la-tua-chiave
+   OPENROUTER_API_KEY=la-tua-chiave
+   GEMINI_API_KEY=la-tua-chiave
+   ```
+3. In `config/device.toml` abilita e elenca i provider **in ordine di preferenza** (se uno fallisce o finisce la quota
+   si passa al successivo):
+   ```toml
+   [permissions]
+   "model.chat" = "auto"
+   [model]
+   enabled = true
+   [[model.providers]]
+   name = "groq"
+   base_url = "https://api.groq.com/openai/v1"
+   model = "<modello scelto sul sito Groq>"
+   api_key_env = "GROQ_API_KEY"
+   [[model.providers]]
+   name = "gemini"
+   base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+   model = "<modello Gemini, es. un 'flash'>"
+   api_key_env = "GEMINI_API_KEY"
+   [[model.providers]]
+   name = "openrouter"
+   base_url = "https://openrouter.ai/api/v1"
+   model = "<modello con suffisso :free>"
+   api_key_env = "OPENROUTER_API_KEY"
+   ```
+4. `python -m jarvis doctor` mostra se ogni chiave è presente (senza stamparla).
+
+Cosa sapere:
+- con un provider cloud **i tuoi comandi escono dal PC**; file, memoria e note restano esclusi salvo
+  `allow_private_data = true`;
+- piani gratuiti = quote non garantite. Se una rotta può costare, marcala `paid = true`: resta bloccata finché non
+  imposti `allow_paid = true` e un `budget_eur` > 0, e si ferma al raggiungimento del limite;
+- l'agente usa gli strumenti di Jarvis con gli stessi permessi e conferme: la chiave dà accesso al modello, non al PC.
 
 ## Fermare e disinstallare
 - Fermare: **■ Stop** o tasto Esc (ferma attività, voce e browser), poi Ctrl+C nel terminale.
