@@ -4,6 +4,14 @@ Obiettivo: verificare sul tuo PC reale ciò che in cloud non si può provare (mi
 Windows, velocità del Ryzen 3). Fallo su **un solo PC**; il secondo solo dopo aver approvato il primo.
 Tempo stimato: 30–45 minuti, più i download (~700 MB).
 
+## Il tuo hardware: Ryzen 3 3200U
+2 core / 4 thread, 15 W (portatile), grafica Vega 3 integrata, 16 GB RAM. Cosa aspettarsi (**stime**, da misurare):
+- trascrizione `base`: ok; **non** passare a `small` (circa 3× più lento);
+- voce Kokoro: più lenta del cloud; se `prima_risposta_audio_ms` supera ~4000, usa `tts_engine = "browser"`;
+- la GPU integrata non viene usata: tutto gira su CPU; tieni il portatile **collegato alla corrente**
+  (a batteria la CPU rallenta);
+- modello locale facoltativo: prova `qwen3:1.7b`; `qwen3:4b` sta in RAM ma sarà probabilmente lento.
+
 ## 0. Annota il sistema
 Esegui `python -m jarvis doctor` dopo l'installazione: stampa sistema, CPU, thread e RAM.
 

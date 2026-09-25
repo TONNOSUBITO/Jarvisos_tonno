@@ -28,6 +28,14 @@ a modelli caldi; dalla fine della frase all'inizio della risposta vocale 2,1 s. 
 precaricamento) 7,2 s. Frase di prova «Cerca e apri documentazione» trascritta «Cerca i apri documentazioni»:
 il router ora tollera queste varianti. I nomi inglesi («Python») vengono trascritti male.
 
+**Misure in cloud limitate a 2 core** (per avvicinarsi al Ryzen 3 3200U: 2 core / 4 thread, 15 W; resta una
+CPU diversa, NON è un benchmark del tuo PC), frase di 3,8 s:
+| Componente | Tempo | Nota |
+|---|---|---|
+| Whisper `base` int8 | 0,76 s | trascrizione corretta |
+| Kokoro fp32 (`kokoro-v1.0.onnx`) | 1,01 s (RTF 0,27) | scelto |
+| Kokoro int8 (`kokoro-v1.0.int8.onnx`) | 6,43 s (RTF 1,68) | **scartato**: più piccolo ma 6× più lento su questa CPU |
+
 ## Fase 3 — modelli e memoria
 | Elemento | Stato |
 |---|---|
