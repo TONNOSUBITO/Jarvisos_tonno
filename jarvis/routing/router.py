@@ -41,7 +41,7 @@ _RULES: list[tuple[str, re.Pattern[str]]] = [
     ("files_move", re.compile(r"^(?:sposta|rinomina) (?:il )?file\s+(?P<src>.+?)\s+(?:in|a|come)\s+(?P<dst>.+)$")),
     ("web_search_open", re.compile(
         r"^(?:(?:cerca|trova)\s+(?:e|ed|i|e poi|poi)\s+apri|apri il primo risultato (?:per|di|su))\s+(?P<query>.+)$")),
-    ("web_open", re.compile(r"^(?:apri|vai su|visita)\s+(?:il sito|la pagina|il link)\s+(?P<url>\S+)$")),
+    ("web_open", re.compile(r"^(?:apri|vai su|visita)\s+(?:(?:il sito|la pagina|il link)\s+)?(?P<url>\S+)$")),
     ("web_search", re.compile(
         r"^(?:cerca|ricerca|trova)(?:\s+(?:su internet|online|sul web|in rete))?\s+(?P<query>.+)$")),
     ("note", re.compile(
@@ -51,12 +51,24 @@ _RULES: list[tuple[str, re.Pattern[str]]] = [
 ]
 
 
+_VERB_MAP = {"aprire": "apri", "aprimi": "apri", "apri mi": "apri", "cercare": "cerca", "cercami": "cerca",
+             "trovare": "trova", "trovami": "trova", "avviare": "avvia", "ricordare": "ricorda",
+             "fermare": "ferma", "preparare": "prepara", "preparami": "prepara", "creare": "crea",
+             "scrivere": "scrivi", "scrivimi": "scrivi", "leggere": "leggi", "leggimi": "leggi",
+             "elencare": "elenca", "elencami": "elenca", "dimenticare": "dimentica"}
+_VERBS = re.compile(r"^(" + "|".join(sorted(_VERB_MAP, key=len, reverse=True)) + r")\b", re.I)
+
+
 def normalize(text: str) -> str:
     # la trascrizione vocale aggiunge punteggiatura e maiuscole: la togliamo ai bordi
     t = text.strip().strip("\"'«»“”")
     t = _WAKE.sub("", t)
     t = re.sub(r"\s+", " ", t)
     t = re.sub(r"[.!?;,]+$", "", t)
+    t = re.sub(r"[\s,]+(?:per favore|grazie)$", "", t, flags=re.I)
+    # forme cortesi/infinite del parlato → imperativo delle regole ("puoi aprire" → "apri")
+    t = re.sub(r"^(?:per favore\s+)?(?:mi\s+)?(?:(?:puoi|potresti|riesci a|vorrei|voglio)\s+)?", "", t, flags=re.I)
+    t = _VERBS.sub(lambda m: _VERB_MAP[m.group(1).lower()], t)
     return t.strip()
 
 

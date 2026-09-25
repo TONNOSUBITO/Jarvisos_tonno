@@ -31,3 +31,22 @@ def test_known_intents(text, kind, slots):
 def test_unknown_goes_to_clarification_level():
     i = R.route("che tempo farà domani secondo te?")
     assert i.kind == "unknown" and i.level == 2
+
+
+@pytest.mark.parametrize("text,kind", [
+    ("Apri la calcolatrice.", "open_app"), ("Puoi aprire la calcolatrice?", "open_app"),
+    ("Mi apri la calcolatrice per favore", "open_app"), ("Avvia il Blocco note!", "open_app"),
+    ("Cercami le notizie di oggi", "web_search"), ("Potresti cercare meteo Roma?", "web_search"),
+    ("Vai su youtube.com", "web_open"), ("Ricordati che domani ho il dentista", "remember"),
+    ("Cosa ricordi di me?", "memory_list"), ("Ferma tutto", "stop"),
+])
+def test_spoken_phrasing(text, kind):
+    """Frasi come escono dalla trascrizione: cortesia, infiniti, articoli, punteggiatura."""
+    assert R.route(text).kind == kind
+
+
+def test_app_names_with_articles():
+    from jarvis.tools.apps import MockAppAdapter, OpenAppTool
+    t = OpenAppTool({"calcolatrice": ["calc.exe"], "blocco note": ["notepad.exe"]}, MockAppAdapter())
+    assert t.resolve("la calcolatrice") == ["calc.exe"] and t.resolve("il Blocco note") == ["notepad.exe"]
+    assert t.resolve("l'calcolatrice") == ["calc.exe"] and t.resolve("regedit") is None
