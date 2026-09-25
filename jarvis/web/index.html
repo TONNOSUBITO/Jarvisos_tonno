@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jarvis</title>
+<style>
+  :root { --bg:#f6f7f9; --fg:#1b1f24; --muted:#5b6470; --card:#fff; --line:#d9dde3;
+          --accent:#1f6feb; --danger:#c62828; --ok:#2e7d32; --warn:#b26a00; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1216; --fg:#e6e9ed; --muted:#9aa4b0; --card:#171b21; --line:#2a313a;
+            --accent:#58a6ff; --danger:#ff6b6b; --ok:#5fd07a; --warn:#f2b44b; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.45 system-ui, sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:16px; display:grid; gap:12px; }
+  header { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  header h1 { font-size:20px; margin:0; flex:1; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; }
+  input[type=text] { flex:1; min-width:200px; padding:10px; font:inherit; border:1px solid var(--line);
+                     border-radius:6px; background:var(--bg); color:var(--fg); }
+  button { font:inherit; padding:10px 14px; border-radius:6px; border:1px solid var(--line);
+           background:var(--card); color:var(--fg); cursor:pointer; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  button.stop { background:var(--danger); color:#fff; border-color:var(--danger); font-weight:600; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  .status { font-weight:600; padding:2px 8px; border-radius:10px; border:1px solid var(--line); }
+  .s-completato { color:var(--ok); } .s-errore, .s-fermato { color:var(--danger); }
+  .s-attesa_conferma { color:var(--warn); }
+  pre { white-space:pre-wrap; word-break:break-word; margin:0; font:13px/1.4 ui-monospace, monospace; }
+  .muted { color:var(--muted); font-size:13px; }
+  #confirm { border-color:var(--warn); display:none; }
+  ul { margin:4px 0; padding-left:20px; }
+  h2 { font-size:15px; margin:0 0 6px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Jarvis <span class="muted">· dispositivo <b id="dev">__DEVICE_ID__</b></span></h1>
+    <button class="stop" id="stopAll" title="Ferma tutte le attività e chiude il browser">■ Stop</button>
+  </header>
+
+  <section class="card">
+    <form id="cmdForm" class="row">
+      <button type="button" id="talk" disabled title="Push-to-talk: Fase 2, non disponibile">🎤 Parla</button>
+      <input type="text" id="cmd" maxlength="500" autocomplete="off"
+             placeholder="es. «cerca e apri documentazione python», «apri calcolatrice», «prepara una nota: ...»">
+      <button class="primary" type="submit">Invia</button>
+    </form>
+    <p class="muted">Fase 1: solo input testuale. Voce e trascrizione arrivano in Fase 2.</p>
+  </section>
+
+  <section class="card" id="confirm">
+    <h2>Conferma richiesta</h2>
+    <pre id="confirmPreview"></pre>
+    <div class="row" style="margin-top:8px">
+      <button class="primary" id="approve">Conferma questa azione</button>
+      <button id="reject">Rifiuta</button>
+    </div>
+    <p class="muted">La conferma autorizza solo l'azione mostrata, una volta.</p>
+  </section>
+
+  <section class="card">
+    <h2>Attività corrente <span class="status" id="status">—</span></h2>
+    <div class="muted" id="command"></div>
+    <div id="plan"></div>
+    <p><b>Risultato:</b> <span id="result"></span></p>
+    <p class="muted" id="report"></p>
+    <details><summary>Log</summary><pre id="log"></pre></details>
+  </section>
+
+  <section class="card">
+    <h2>Note nella vault</h2>
+    <ul id="notes"></ul>
+  </section>
+</main>
+<script>
+const TOKEN = "__JARVIS_TOKEN__";
+const H = { "Content-Type": "application/json", "X-Jarvis-Token": TOKEN };
+const $ = (id) => document.getElementById(id);
+let current = null;
+
+async function api(method, url, body) {
+  const r = await fetch(url, { method, headers: H, body: body ? JSON.stringify(body) : undefined });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.status);
+  return r.json();
+}
+
+function render(t) {
+  if (!t) return;
+  current = t;
+  $("status").textContent = t.status;
+  $("status").className = "status s-" + t.status;
+  $("command").textContent = "«" + t.command + "»";
+  $("plan").innerHTML = t.plan.length ? "<b>Piano:</b><ul>" + t.plan.map(a => "<li></li>").join("") + "</ul>" : "";
+  $("plan").querySelectorAll("li").forEach((li, i) => {
+    const s = t.steps[i];
+    li.textContent = t.plan[i].description + (s ? (s.ok ? " ✔" : " ✖") + " (" + s.duration_ms + " ms)" : "");
+  });
+  $("result").textContent = t.result;
+  $("report").textContent = t.report;
+  $("log").textContent = t.log.join("\n");
+  const p = t.pending;
+  $("confirm").style.display = p ? "block" : "none";
+  if (p) { $("confirmPreview").textContent = p.preview; $("confirm").dataset.hash = p.action_hash; }
+}
+
+async function refresh() {
+  try {
+    const s = await api("GET", "/api/state");
+    render(current ? s.tasks.find(t => t.id === current.id) || s.tasks[0] : s.tasks[0]);
+    const v = await api("GET", "/api/vault");
+    $("notes").innerHTML = "";
+    for (const n of v.notes) {
+      const li = document.createElement("li");
+      li.textContent = n + " ";
+      const del = document.createElement("button");
+      del.textContent = "Elimina";
+      del.onclick = async () => {
+        if (confirm("Eliminare " + n + "?")) { await api("DELETE", "/api/vault/note?path=" + encodeURIComponent(n)); refresh(); }
+      };
+      li.appendChild(del);
+      $("notes").appendChild(li);
+    }
+    if (!v.notes.length) $("notes").innerHTML = "<li class='muted'>nessuna nota</li>";
+  } catch (e) { $("status").textContent = "errore UI: " + e.message; }
+}
+
+$("cmdForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const text = $("cmd").value.trim();
+  if (!text) return;
+  render(await api("POST", "/api/command", { text }));
+  $("cmd").value = "";
+};
+$("stopAll").onclick = async () => { await api("POST", "/api/stop"); refresh(); };
+async function answer(approve) {
+  if (!current) return;
+  try { await api("POST", "/api/tasks/" + current.id + "/confirm", { action_hash: $("confirm").dataset.hash, approve }); }
+  catch (e) { alert("Conferma non accettata: " + e.message); }
+  refresh();
+}
+$("approve").onclick = () => answer(true);
+$("reject").onclick = () => answer(false);
+setInterval(refresh, 700);
+refresh();
+</script>
+</body>
+</html>
