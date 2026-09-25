@@ -4,15 +4,17 @@
 [device]
 device_id = "portatile"          # es. "portatile" o "fisso": uno per PC
 # platform = "windows"           # rilevata automaticamente se omessa
-data_dir = "data"                # audit, profilo browser dedicato
-vault_dir = "data/vault"         # oppure una vault Obsidian dedicata (non quella personale intera)
-app_adapter = "mock"             # "native" per aprire davvero le app (Fase 2, sul PC)
+data_dir = "data"                # audit, profilo browser dedicato, modelli voce
+vault_dir = "data/vault"         # oppure una vault Obsidian DEDICATA (non quella personale intera)
+# work_dir = "C:/Users/tuonome/Documents/Jarvis"   # unica cartella in cui Jarvis gestisce file
+app_adapter = "mock"             # "native" per aprire davvero le app
 
 # App approvate: nome pronunciato → comando come lista (niente shell).
 [apps]
 # Windows:
 # calcolatrice = ["calc.exe"]
-# blocco note = ["notepad.exe"]
+# "blocco note" = ["notepad.exe"]
+# esplora file = ["explorer.exe"]
 # Linux:
 # calcolatrice = ["gnome-calculator"]
 # editor = ["gedit"]
@@ -24,27 +26,67 @@ app_adapter = "mock"             # "native" per aprire davvero le app (Fase 2, s
 "web.open" = "auto"
 "notes.draft" = "auto"
 "notes.save" = "confirm"
-"model.chat" = "deny"
+"memory.remember" = "confirm"
+"memory.list" = "auto"
+"memory.forget" = "confirm"
+"vault.search" = "auto"
+"files.list" = "auto"
+"files.read" = "auto"
+"files.write" = "confirm"
+"files.move" = "confirm"
+"files.delete" = "confirm"       # sposta nel cestino .cestino-jarvis, recuperabile
+"model.chat" = "deny"            # "auto" per usare i modelli in [model]
+"tts.cloud" = "deny"             # "auto" solo se usi Fish Audio (invia testo al servizio)
 "shell.exec" = "deny"            # obbligatorio: non supportato
 
 [limits]
-task_timeout_s = 60
+task_timeout_s = 90
 tool_timeout_s = 30
 confirm_timeout_s = 300
 max_steps = 8
-budget_eur = 0.0
+budget_eur = 0.0                 # spesa massima per sessione; 0 = nessuna spesa
 
 [browser]
 headless = false
-search_url = "https://html.duckduckgo.com/html/?q={q}"   # selettore non verificato in cloud
+search_url = "https://html.duckduckgo.com/html/?q={q}"   # selettore da verificare sul PC
 result_selector = "a.result__a"
 allowed_domains = []             # vuoto = tutti i domini http/https pubblici
 allow_local_network = false
 max_results = 5
 max_page_chars = 2000
 
-[model]                          # Fase 3: disattivato
+[voice]
+stt_engine = "faster-whisper"    # "faster-whisper" | "whispercpp" | "none"
+stt_model = "base"               # "small" solo se il PC regge (misura prima)
+stt_language = "it"
+tts_engine = "browser"           # "kokoro" (locale) | "browser" | "fish" (cloud) | "none"
+tts_voice = "if_sara"            # Kokoro: "if_sara" (femminile) o "im_nicola" (maschile)
+tts_speed = 1.0
+kokoro_model = "data/models/kokoro-v1.0.onnx"
+kokoro_voices = "data/models/voices-v1.0.bin"
+fish_model = "s2.1-pro-free"
+fish_reference_id = ""
+speak_replies = true
+max_audio_s = 30
+
+[model]                          # livelli 2-3: disattivato finché non lo abiliti
 enabled = false
-base_url = ""                    # es. OmniRoute locale: http://127.0.0.1:20128/v1
-model = ""
 allow_paid = false
+timeout_s = 30
+agent_tools = true
+allow_private_data = false       # true = file/memoria/note possono andare al modello
+
+# Provider in ordine di fallback. La chiave va nel .env: qui solo il NOME della variabile.
+# [[model.providers]]
+# name = "ollama-locale"
+# base_url = "http://127.0.0.1:11434/v1"
+# model = "qwen3:1.7b"
+#
+# [[model.providers]]
+# name = "omniroute"
+# base_url = "http://127.0.0.1:20128/v1"
+# model = "auto"
+# api_key_env = "OMNIROUTE_API_KEY"
+# paid = false                   # metti true se la rotta può costare
+# price_in_per_mtok_eur = 0.0
+# price_out_per_mtok_eur = 0.0

@@ -26,6 +26,13 @@ class ToolError(Exception):
 class Tool(ABC):
     name: str
     capability: str
+    # Descrizione e schema JSON degli argomenti, esposti all'agente (livello 3).
+    description: str = ""
+    parameters: dict[str, Any] = {"type": "object", "properties": {}}
+    agent_visible: bool = True
+    # True = restituisce dati personali (file, memoria, note): mai visibile a un modello cloud
+    # salvo `[model] allow_private_data = true`; dopo l'uso, le azioni web richiedono conferma.
+    private_data: bool = False
 
     @abstractmethod
     async def run(self, args: dict[str, Any]) -> ToolResult: ...

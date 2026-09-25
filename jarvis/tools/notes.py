@@ -11,6 +11,7 @@ from jarvis.tools.base import Tool, ToolResult
 class DraftNoteTool(Tool):
     name = "notes.draft"
     capability = "notes.draft"
+    agent_visible = False  # l'agente scrive direttamente titolo e testo in notes.save
 
     async def run(self, args: dict[str, Any]) -> ToolResult:
         text = args["text"].strip()
@@ -28,6 +29,8 @@ class DraftNoteTool(Tool):
 class SaveNoteTool(Tool):
     name = "notes.save"
     capability = "notes.save"
+    description = "Salva una nota Markdown nella vault (richiede conferma dell'utente)."
+    parameters = {"type": "object", "properties": {"title": {"type": "string"}, "body": {"type": "string"}, "folder": {"type": "string", "enum": ["inbox", "daily", "projects", "reports"]}}, "required": ["title", "body"]}
 
     def __init__(self, vault: Vault):
         self.vault = vault

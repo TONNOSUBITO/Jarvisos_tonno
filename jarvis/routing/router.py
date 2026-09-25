@@ -31,6 +31,14 @@ _URL = re.compile(r"^(?:https?://)?[\w\-]+(?:\.[\w\-]+)+(?::\d+)?(?:/\S*)?$", re
 
 _RULES: list[tuple[str, re.Pattern[str]]] = [
     ("stop", re.compile(r"^(?:stop|fermati|ferma(?:ti)? tutto|basta|annulla)$")),
+    ("memory_list", re.compile(r"^(?:cosa ricordi(?: di me)?|cosa sai di me|mostra(?:mi)? (?:la )?memoria)$")),
+    ("remember", re.compile(r"^(?:ricorda(?:ti)?(?: che)?|memorizza(?: che)?)\s+(?P<fact>.+)$")),
+    ("forget", re.compile(r"^(?:dimentica(?: che)?|cancella dalla memoria)\s+(?P<query>.+)$")),
+    ("vault_search", re.compile(r"^(?:cerca|trova) nelle (?:mie )?note\s+(?P<query>.+)$")),
+    ("files_list", re.compile(r"^(?:elenca|mostra(?:mi)?) (?:i )?file(?:\s+(?:in|nella cartella)\s+(?P<path>.+))?$")),
+    ("files_read", re.compile(r"^(?:leggi|apri) (?:il )?file\s+(?P<path>.+)$")),
+    ("files_delete", re.compile(r"^(?:elimina|cancella|cestina) (?:il )?file\s+(?P<path>.+)$")),
+    ("files_move", re.compile(r"^(?:sposta|rinomina) (?:il )?file\s+(?P<src>.+?)\s+(?:in|a|come)\s+(?P<dst>.+)$")),
     ("web_search_open", re.compile(
         r"^(?:cerca e apri|trova e apri|apri il primo risultato (?:per|di|su))\s+(?P<query>.+)$")),
     ("web_open", re.compile(r"^(?:apri|vai su|visita)\s+(?:il sito|la pagina|il link)\s+(?P<url>\S+)$")),
@@ -63,7 +71,7 @@ class RuleRouter(IntentRouter):
             if not m:
                 continue
             # recupera gli slot dal testo originale (mantiene maiuscole)
-            slots = {k: src[m.start(k):m.end(k)].strip() for k in m.groupdict()}
+            slots = {k: src[m.start(k):m.end(k)].strip() for k, v in m.groupdict().items() if v is not None}
             if kind == "web_open" and not _URL.match(slots["url"]):
                 continue
             if kind == "open_app" and _URL.match(slots["app"]):

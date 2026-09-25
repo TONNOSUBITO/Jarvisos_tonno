@@ -13,7 +13,7 @@ from pathlib import Path
 
 from jarvis.tools.audit import contains_secret
 
-FOLDERS = ("inbox", "daily", "projects", "reports", "skills")
+FOLDERS = ("inbox", "daily", "projects", "reports", "skills", "memory")
 
 
 class VaultError(Exception):
@@ -65,6 +65,18 @@ class Vault:
         if not self.root.exists():
             return []
         return sorted(str(p.relative_to(self.root)).replace("\\", "/") for p in self.root.rglob("*.md"))
+
+    def search(self, query: str, limit: int = 20) -> list[dict[str, str]]:
+        q = query.lower().strip()
+        hits = []
+        for rel in self.list_notes():
+            text = (self.root / rel).read_text(encoding="utf-8", errors="replace")
+            i = text.lower().find(q) if q else -1
+            if i >= 0:
+                hits.append({"path": rel, "snippet": text[max(0, i - 80): i + 120].replace("\n", " ")})
+                if len(hits) >= limit:
+                    break
+        return hits
 
     def read(self, rel: str) -> str:
         return self._resolve(rel).read_text(encoding="utf-8")

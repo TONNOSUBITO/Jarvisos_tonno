@@ -10,10 +10,19 @@ _DONE_PHRASE = {
     "web.open": "ho aperto {url}",
     "notes.draft": "ho preparato una bozza",
     "notes.save": "ho salvato la nota nella vault",
+    "memory.remember": "ho memorizzato «{fact}»",
+    "memory.list": "ho letto la memoria",
+    "memory.forget": "ho dimenticato i ricordi con «{query}»",
+    "vault.search": "ho cercato «{query}» nelle note",
+    "files.list": "ho elencato i file",
+    "files.read": "ho letto {path}",
+    "files.write": "ho creato {path}",
+    "files.move": "ho spostato {src} in {dst}",
+    "files.delete": "ho spostato {path} nel cestino di Jarvis (recuperabile)",
 }
 
 # Azioni con effetti esterni che Jarvis in Fase 1 non ha affatto.
-_NEVER = "non ho inviato, pubblicato, acquistato né eliminato nulla"
+_NEVER = "non ho inviato, pubblicato, acquistato né eliminato definitivamente nulla"
 
 
 def build_report(task: Task, status: Status) -> str:

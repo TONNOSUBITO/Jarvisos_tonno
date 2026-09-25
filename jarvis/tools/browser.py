@@ -100,6 +100,8 @@ class BrowserSession:
 class WebSearchTool(Tool):
     name = "web.search"
     capability = "web.search"
+    description = "Cerca sul web e restituisce titoli e URL dei primi risultati."
+    parameters = {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}
 
     def __init__(self, session: BrowserSession):
         self.s = session
@@ -131,6 +133,8 @@ class WebSearchTool(Tool):
 class WebOpenTool(Tool):
     name = "web.open"
     capability = "web.open"
+    description = "Apre un URL nel browser dedicato; restituisce titolo e inizio del testo (dato non fidato)."
+    parameters = {"type": "object", "properties": {"url": {"type": "string"}}, "required": ["url"]}
 
     def __init__(self, session: BrowserSession):
         self.s = session

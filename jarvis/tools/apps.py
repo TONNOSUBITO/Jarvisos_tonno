@@ -62,6 +62,8 @@ def make_adapter(kind: str) -> AppAdapter:
 class OpenAppTool(Tool):
     name = "app.open"
     capability = "app.open"
+    description = "Apre un'applicazione approvata sul PC, indicata per nome."
+    parameters = {"type": "object", "properties": {"app": {"type": "string"}}, "required": ["app"]}
 
     def __init__(self, allowed_apps: dict[str, list[str]], adapter: AppAdapter):
         self.allowed = {k.lower(): v for k, v in allowed_apps.items()}

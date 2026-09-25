@@ -42,6 +42,22 @@ def plan_for(intent: Intent) -> list[Action]:
                     Action("web.open", {"url": FIRST_RESULT_URL}, "apro il primo risultato")]
         case "web_open":
             return [Action("web.open", {"url": s["url"]}, f"apro {s['url']}")]
+        case "remember":
+            return [Action("memory.remember", {"fact": s["fact"]}, "memorizzo (solo dopo conferma)")]
+        case "memory_list":
+            return [Action("memory.list", {}, "leggo la memoria")]
+        case "forget":
+            return [Action("memory.forget", {"query": s["query"]}, f"dimentico «{s['query']}» (dopo conferma)")]
+        case "vault_search":
+            return [Action("vault.search", {"query": s["query"]}, f"cerco «{s['query']}» nelle note")]
+        case "files_list":
+            return [Action("files.list", {"path": s.get("path", "")}, "elenco i file")]
+        case "files_read":
+            return [Action("files.read", {"path": s["path"]}, f"leggo {s['path']}")]
+        case "files_delete":
+            return [Action("files.delete", {"path": s["path"]}, f"sposto nel cestino {s['path']} (dopo conferma)")]
+        case "files_move":
+            return [Action("files.move", {"src": s["src"], "dst": s["dst"]}, f"sposto {s['src']} (dopo conferma)")]
         case "note":
             return [Action("notes.draft", {"text": s["text"]}, "preparo la bozza"),
                     Action("notes.save", {"draft": PREV_DRAFT, "folder": "inbox"},
@@ -62,12 +78,20 @@ class Orchestrator:
         self._runners: dict[str, asyncio.Task] = {}
         self._confirm: dict[str, tuple[asyncio.Event, list[bool]]] = {}
         self.vault = None  # impostato da build_orchestrator
+        self.stt = None    # SpeechToText, opzionale
+        self.agent = None  # Agent (livelli 2-3), opzionale
+        self.tts = None    # TextToSpeech lato server, opzionale
+        self.memory = None
+        self.budget = None
 
     # ---------- API pubblica ----------
-    def submit(self, text: str) -> Task:
-        task = Task(command=text.strip()[:500])
+    def submit(self, text: str = "", audio=None) -> Task:
+        """Testo, oppure audio (float32 16 kHz) da trascrivere localmente."""
+        task = Task(command=text.strip()[:500], source="voce" if audio is not None else "testo")
+        if audio is not None:
+            task.status = Status.TRANSCRIBING
         self.tasks[task.id] = task
-        self._runners[task.id] = asyncio.create_task(self._run_guarded(task))
+        self._runners[task.id] = asyncio.create_task(self._run_guarded(task, audio))
         return task
 
     async def wait(self, task_id: str) -> Task:
@@ -131,9 +155,9 @@ class Orchestrator:
         self.audit.write("task_end", task=task.id, status=status.value, result=result,
                          steps=[{"tool": s.tool, "ok": s.ok} for s in task.steps])
 
-    async def _run_guarded(self, task: Task) -> None:
+    async def _run_guarded(self, task: Task, audio=None) -> None:
         try:
-            await asyncio.wait_for(self._run(task), timeout=self.config.limits.task_timeout_s)
+            await asyncio.wait_for(self._run(task, audio), timeout=self.config.limits.task_timeout_s)
         except asyncio.TimeoutError:
             self._finish(task, Status.ERROR, f"Timeout attività ({self.config.limits.task_timeout_s:.0f}s)")
         except asyncio.CancelledError:
@@ -147,14 +171,34 @@ class Orchestrator:
         finally:
             self._confirm.pop(task.id, None)
 
-    async def _run(self, task: Task) -> None:
+    async def _run(self, task: Task, audio=None) -> None:
+        t_start = time.monotonic()
+        if audio is not None:
+            if self.stt is None:
+                self._finish(task, Status.ERROR, "Trascrizione non configurata ([voice] stt_engine)")
+                return
+            self._set(task, Status.TRANSCRIBING, f"Trascrivo {len(audio) / 16000:.1f}s di audio (locale)")
+            text = await asyncio.to_thread(self.stt.transcribe, audio, self.config.voice.stt_language)
+            task.metrics["stt_ms"] = round((time.monotonic() - t_start) * 1000)
+            task.metrics["audio_s"] = round(len(audio) / 16000, 2)
+            task.command = text.strip()[:500]
+            if not task.command:
+                self._finish(task, Status.ERROR, "Non ho sentito nulla: riprova tenendo premuto il tasto")
+                return
         self._set(task, Status.PLANNING, f"Comando: {task.command}")
-        self.audit.write("task_start", task=task.id, command=task.command)
+        # nel registro solo il comando (max 500 caratteri), mai l'audio
+        self.audit.write("task_start", task=task.id, command=task.command, source=task.source)
         intent = self.router.route(task.command)
         task.intent = intent.kind
         if intent.kind == "stop":
             await self.stop(exclude=task.id)
             self._finish(task, Status.DONE, "Tutte le attività sono state fermate")
+            return
+        if intent.kind == "unknown" and self.agent is not None \
+                and self.policy.decide("model.chat") is not Decision.DENY:
+            answer = await self.agent.run(self, task)
+            self._set(task, Status.RESPONDING)
+            self._finish(task, Status.DONE, answer)
             return
         if intent.kind == "unknown":
             self._finish(task, Status.DONE,
@@ -165,9 +209,7 @@ class Orchestrator:
         self._set(task, Status.PLANNING, "Piano: " + "; ".join(a.description for a in task.plan))
 
         prev: ToolResult | None = None
-        for i, action in enumerate(task.plan):
-            if i >= self.config.limits.max_steps:
-                raise StepLimitExceeded(f"Limite di {self.config.limits.max_steps} passi raggiunto")
+        for action in task.plan:
             args = self._resolve_args(action.args, prev)
             prev = await self._execute(task, action.tool, args)
             if not prev.ok:
@@ -190,10 +232,16 @@ class Orchestrator:
         return out
 
     async def _execute(self, task: Task, tool_name: str, args: dict[str, Any]) -> ToolResult:
+        """Unico punto di esecuzione dei tool (regole e agente): permessi, conferme, audit."""
+        if len(task.steps) >= self.config.limits.max_steps:
+            raise StepLimitExceeded(f"Limite di {self.config.limits.max_steps} passi raggiunto")
         tool = self.tools.get(tool_name)
         if tool is None:
             return ToolResult(False, f"Strumento non disponibile: {tool_name}")
         decision = self.policy.decide(tool.capability)
+        if decision is Decision.ALLOW and task.tainted and tool.capability.startswith("web."):
+            # dopo aver letto dati privati, ogni uscita verso il web va confermata (anti-esfiltrazione)
+            decision = Decision.CONFIRM
         if decision is Decision.DENY:
             self.audit.write("denied", task=task.id, tool=tool_name, args=args)
             return ToolResult(False, f"Permesso negato per «{tool.capability}» su {self.config.device_id}")
@@ -201,7 +249,8 @@ class Orchestrator:
             approved = await self._ask_confirmation(task, tool, args)
             if not approved:
                 self.audit.write("rejected", task=task.id, tool=tool_name)
-                return ToolResult(False, f"Azione «{tool_name}» non confermata: nulla è stato fatto")
+                return ToolResult(False, f"Azione «{tool_name}» non confermata: nulla è stato fatto",
+                                  {"rejected": True})
 
         self._set(task, Status.EXECUTING, f"Eseguo {tool_name}")
         t0 = time.monotonic()
@@ -212,6 +261,8 @@ class Orchestrator:
         except Exception as e:  # noqa: BLE001
             res = ToolResult(False, f"{tool_name} fallito: {redact(str(e))[:300]}")
         ms = int((time.monotonic() - t0) * 1000)
+        if res.ok and tool.private_data:
+            task.tainted = True
         task.steps.append(StepRecord(tool_name, _loggable(args), res.ok, res.summary, res.verified, ms))
         task.add_log(("✔ " if res.ok else "✖ ") + res.summary)
         if res.untrusted_text:
