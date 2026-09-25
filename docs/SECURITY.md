@@ -19,7 +19,7 @@
 | Registrazioni conservate | l'audio resta in memoria per la trascrizione e viene scartato; nel registro finisce solo il testo del comando (max 500 caratteri) |
 | Modello che agisce da solo | il modello propone soltanto: ogni chiamata passa da `Orchestrator._execute` (permessi, conferme, `max_steps`, timeout, audit); strumenti inesistenti o argomenti non validi vengono rifiutati |
 | Prompt injection verso il modello | risultati dei tool racchiusi tra `<<<DATO_NON_FIDATO>>>` e istruzioni di sistema esplicite; una conferma rifiutata ferma l'agente |
-| Esfiltrazione di dati privati | tool con dati privati (file, memoria, note) invisibili al modello salvo `allow_private_data`; dopo averli letti, `web.*` richiede conferma con URL completo in anteprima |
+| Esfiltrazione di dati privati | tool con dati privati (file, memoria, note) invisibili al modello salvo `allow_private_data`; le preferenze salvate vanno nel prompt solo con `share_memory = true` e rendono il task «contaminato»; dopo averli letti, `web.*` richiede conferma con URL completo in anteprima |
 | File di segreti | `files.read` rifiuta `.env`, chiavi, `*password*`, `*token*`, `cookies*` ecc.; memoria e vault rifiutano testo che sembra un segreto |
 | Cancellazioni irreversibili | `files.delete` sposta in `.cestino-jarvis/` nella stessa cartella; nessuna sovrascrittura in `files.write`/`files.move` |
 | File operazioni fuori dalla cartella | `work_dir` unica, percorsi risolti e confinati, cestino non raggiungibile dai comandi |

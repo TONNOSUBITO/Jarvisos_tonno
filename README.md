@@ -122,7 +122,8 @@ a pagamento collegati in OmniRoute si impostano in OmniRoute (Jarvis non ne cono
 
 Cosa sapere:
 - con un provider cloud **i tuoi comandi escono dal PC**; file, memoria e note restano esclusi salvo
-  `allow_private_data = true`;
+  `allow_private_data = true`; con `share_memory = true` il modello riceve le preferenze che gli hai chiesto di ricordare
+  (risposte più personali; le azioni web di quel comando chiederanno conferma);
 - se un provider fallisce o finisce la quota, Jarvis passa al successivo;
 - i provider `paid = true` restano bloccati finché non imposti `allow_paid = true` e un `budget_eur` > 0;
 - l'agente usa gli strumenti di Jarvis con gli stessi permessi e conferme: la chiave dà accesso al modello, non al PC.

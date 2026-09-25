@@ -93,6 +93,7 @@ class ModelConfig:
     timeout_s: float = 30.0
     agent_tools: bool = True                # livello 3: il modello può proporre azioni con i tool
     allow_private_data: bool = False        # file/memoria/note visibili al modello (se cloud: escono dal PC)
+    share_memory: bool = False              # le preferenze in vault/memory vanno al modello a ogni richiesta
     providers: list[ProviderConfig] = field(default_factory=list)  # in ordine di fallback
 
 

@@ -74,6 +74,7 @@ allow_paid = false
 timeout_s = 30
 agent_tools = true
 allow_private_data = false       # true = file/memoria/note possono andare al modello
+share_memory = false             # true = le preferenze che mi chiedi di ricordare vanno al modello (piu' personale)
 
 # Provider: accoda config/providers.example.toml (14 provider verificati, in ordine di fallback).
 # La chiave va nel .env: nel TOML solo il NOME della variabile (api_key_env).

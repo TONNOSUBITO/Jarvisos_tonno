@@ -63,8 +63,15 @@ class Agent:
     async def run(self, orch: "Orchestrator", task: Task) -> str:
         tools = tool_schemas(orch) if self.use_tools else []
         names = {t.replace(".", "_"): t for t in orch.tools}
+        system = SYSTEM_PROMPT
+        facts = orch.memory.facts() if orch.config.model.share_memory and orch.memory else []
+        if facts:
+            # dati personali: da qui in poi ogni azione web va confermata (anti-esfiltrazione)
+            task.tainted = True
+            system += "\n\nCose che l'utente ti ha chiesto di ricordare (usale per personalizzare):\n" + \
+                "\n".join(f"- {f.split(' _(aggiunto ')[0]}" for f in facts[:50])
         messages: list[dict[str, Any]] = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": system},
             {"role": "user", "content": task.command},
         ]
         task.level = 2

@@ -140,3 +140,16 @@ async def test_last_provider_is_recorded(agent_cfg, apps):
     o = build_orchestrator(agent_cfg, apps, provider=MockProvider("ok"))
     await o.wait(o.submit("dimmi qualcosa di interessante").id)
     assert o.last_provider == "mock"
+
+
+@pytest.mark.parametrize("share", [False, True])
+async def test_share_memory_optin_and_taint(agent_cfg, apps, share):
+    agent_cfg.model.share_memory = share
+    p = MockProvider("Ok, caffè amaro.")
+    o = build_orchestrator(agent_cfg, apps, provider=p)
+    o.memory.add("preferisco il caffè amaro")
+    t = await o.wait(o.submit("come prendo il caffè?").id)
+    system = p.calls[0][0]["content"]
+    assert ("- preferisco il caffè amaro" in system) is share and "aggiunto" not in system
+    assert t.tainted is share
+    await o.stop()

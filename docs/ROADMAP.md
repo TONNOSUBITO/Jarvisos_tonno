@@ -50,6 +50,7 @@ frase «Cerca e apri documentazione» → trascritta correttamente, eseguita; `s
 | OmniRoute locale come primo provider (`auto`), modello reale mostrato nell'HUD, `doctor` controlla che risponda, gateway spento → provider successivo in ≤3 s | ✅ con server simulato; 🧪 mai provato con OmniRoute reale |
 | Client OpenAI-compatibile | 🧪 provato contro Ollama 0.12.3 reale con `qwen3:1.7b` su 2 core: ogni richiesta oltre 5 min (timeout del server) → modello locale **non praticabile** sul 3200U. 14 provider cloud d'esempio con chiave dell'utente: endpoint verificati sulle documentazioni, mai chiamati |
 | Memoria su richiesta con conferma, elenco, oblio, modifica a mano | ✅ |
+| Preferenze in memoria passate al modello (`share_memory`, opt-in), task contaminato → web con conferma | ✅ con modello simulato |
 | Ricerca nelle note, modifica ed eliminazione note da UI | ✅ |
 | Router Jev (TypeSafe): dopo le regole, sceglie l'intento (e l'app tra quelle approvate) con soglia di confidenza | 🎭 con API simulata (`httpx.MockTransport`); API e prezzi verificati su docs.typesafe.ai; mai chiamato davvero, accuratezza e latenza sull'italiano non misurate |
 | Skill personali (`vault/skills/<nome>/SKILL.md`, formato agentskills.io come Hermes): crea con conferma, elenca, leggi; l'agente le usa | ✅ |
