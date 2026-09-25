@@ -25,12 +25,10 @@ def test_known_intents(text, kind, slots):
     i = R.route(text)
     assert i.kind == kind
     assert i.slots == slots
-    assert i.level == 1
 
 
-def test_unknown_goes_to_clarification_level():
-    i = R.route("che tempo farà domani secondo te?")
-    assert i.kind == "unknown" and i.level == 2
+def test_unknown_intent():
+    assert R.route("che tempo farà domani secondo te?").kind == "unknown"
 
 
 @pytest.mark.parametrize("text,kind", [

@@ -8,7 +8,6 @@ I default sono restrittivi: ciò che non è configurato è negato.
 from __future__ import annotations
 
 import os
-import platform
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -97,7 +96,6 @@ class ModelConfig:
 @dataclass
 class DeviceConfig:
     device_id: str = "dev-cloud"
-    platform: str = field(default_factory=lambda: platform.system().lower())
     data_dir: Path = Path("data")
     vault_dir: Path = Path("data/vault")
     work_dir: Path | None = None  # unica cartella in cui Jarvis può gestire file
@@ -147,7 +145,6 @@ def load_config(path: str | os.PathLike | None = None) -> DeviceConfig:
     dev = raw.get("device") or {}
     cfg = DeviceConfig(
         device_id=dev.get("device_id", "dev-local"),
-        platform=dev.get("platform", platform.system().lower()),
         data_dir=Path(dev.get("data_dir", "data")),
         vault_dir=Path(dev.get("vault_dir", "data/vault")),
         work_dir=Path(dev["work_dir"]) if dev.get("work_dir") else None,

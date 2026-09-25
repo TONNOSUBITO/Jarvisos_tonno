@@ -37,12 +37,6 @@ class BudgetMeter:
         self.limit_eur = limit_eur
         self.spent_eur = 0.0
 
-    def check(self, estimated_eur: float) -> None:
-        if estimated_eur > 0 and self.spent_eur + estimated_eur > self.limit_eur:
-            raise BudgetExceeded(
-                f"Spesa stimata {estimated_eur:.4f}€ oltre il limite "
-                f"({self.spent_eur:.4f}/{self.limit_eur:.2f}€)")
-
     def charge(self, eur: float) -> None:
         self.spent_eur += max(0.0, eur)
 
@@ -116,12 +110,10 @@ class OpenAICompatibleProvider(ModelProvider):
 class GuardedProvider:
     """Applica al provider: rotte a pagamento disattivate e soglia di spesa."""
 
-    def __init__(self, provider: ModelProvider, budget: BudgetMeter, allow_paid: bool,
-                 estimated_cost_eur: float = 0.0):
+    def __init__(self, provider: ModelProvider, budget: BudgetMeter, allow_paid: bool):
         self.provider = provider
         self.budget = budget
         self.allow_paid = allow_paid
-        self.estimated_cost_eur = estimated_cost_eur
 
     async def complete(self, messages, tools=None, timeout_s=30.0) -> ModelResponse:
         if self.provider.is_paid and not self.allow_paid:
@@ -129,7 +121,6 @@ class GuardedProvider:
         if self.provider.is_paid and self.budget.spent_eur >= self.budget.limit_eur:
             raise BudgetExceeded(f"Budget esaurito: spesi {self.budget.spent_eur:.4f}€ su un limite di "
                                  f"{self.budget.limit_eur:.2f}€")
-        self.budget.check(self.estimated_cost_eur)
         resp = await self.provider.complete(messages, tools, timeout_s)
         self.budget.charge(resp.cost_eur)
         return resp
