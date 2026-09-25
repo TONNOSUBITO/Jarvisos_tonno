@@ -155,10 +155,11 @@ class FallbackProvider(ModelProvider):
 def build_provider(model_cfg, budget: BudgetMeter) -> FallbackProvider | None:
     import os
 
-    if not model_cfg.enabled or not model_cfg.providers:
+    if not model_cfg.enabled:
         return None
+    # un provider che richiede una chiave assente dal .env viene saltato (niente chiamate a vuoto)
     ps = [OpenAICompatibleProvider(p.base_url, p.model, os.environ.get(p.api_key_env, "") if p.api_key_env else "",
                                    is_paid=p.paid, price_in=p.price_in_per_mtok_eur, price_out=p.price_out_per_mtok_eur,
                                    label=p.name)
-          for p in model_cfg.providers]
-    return FallbackProvider(ps, budget, model_cfg.allow_paid)
+          for p in model_cfg.providers if not p.api_key_env or os.environ.get(p.api_key_env)]
+    return FallbackProvider(ps, budget, model_cfg.allow_paid) if ps else None

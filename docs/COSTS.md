@@ -23,6 +23,7 @@ Non è «gratis illimitato» e non equivale a un abbonamento Claude.
 - `[limits] budget_eur` = tetto per processo; ogni chiamata stima il costo e viene rifiutata se lo supera.
 - `[model] allow_paid = false` blocca ogni provider marcato a pagamento.
 - Ordine: regole locali (gratis, sempre prima) → provider cloud nell'ordine di `[[model.providers]]`, solo se abilitati.
-- Groq, Gemini e OpenRouter (modelli `:free`) hanno piani gratuiti con limiti: verifica i termini attuali sul loro sito.
+- Groq, Cerebras, Gemini, Mistral, OpenRouter (`:free`) e Cohere (trial) hanno piani gratuiti con limiti: verifica i termini attuali sul loro sito.
+- Together (crediti iniziali che scadono) e Anthropic (a pagamento) sono marcati `paid = true` in `config/providers.example.toml`.
 - Contatore spesa in UI (`spesa: x / limite €`), calcolato dai token restituiti dal provider × i prezzi che imposti in `[[model.providers]]`. Se il provider non restituisce i token, la spesa risulta 0: non è una garanzia.
 - Un provider `paid = true` viene bloccato appena la spesa raggiunge il limite.
