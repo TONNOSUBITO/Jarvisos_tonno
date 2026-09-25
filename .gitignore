@@ -1,0 +1,22 @@
+# segreti e config locali
+.env
+config/device.toml
+# ambienti e cache
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+# dati runtime: log, audit, profilo browser, registrazioni, screenshot, vault privata
+data/
+logs/
+*.log
+*.jsonl
+recordings/
+*.wav
+*.mp3
+screenshots/
+*.png
+vault/
