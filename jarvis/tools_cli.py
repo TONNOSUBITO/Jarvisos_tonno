@@ -62,7 +62,8 @@ def download_models(cfg: DeviceConfig) -> int:
     return 0
 
 
-def _mem_gb() -> str:
+def mem_gb() -> tuple[float, float] | None:
+    """(totale, libera) in GB, senza dipendenze esterne; None se non rilevabile."""
     try:
         if platform.system() == "Windows":
             import ctypes
@@ -72,13 +73,16 @@ def _mem_gb() -> str:
                             ("avail", ctypes.c_ulonglong)] + [(f"x{i}", ctypes.c_ulonglong) for i in range(5)]
             m = MS(); m.l = ctypes.sizeof(MS)
             ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(m))
-            return f"{m.total / 2**30:.1f} GB totali, {m.avail / 2**30:.1f} GB liberi"
+            return m.total / 2**30, m.avail / 2**30
         info = dict(line.split(":", 1) for line in Path("/proc/meminfo").read_text().splitlines())
-        tot = int(info["MemTotal"].split()[0]) / 2**20
-        av = int(info["MemAvailable"].split()[0]) / 2**20
-        return f"{tot:.1f} GB totali, {av:.1f} GB liberi"
+        return int(info["MemTotal"].split()[0]) / 2**20, int(info["MemAvailable"].split()[0]) / 2**20
     except Exception:  # noqa: BLE001
-        return "non rilevata"
+        return None
+
+
+def _ram_text() -> str:
+    m = mem_gb()
+    return f"{m[0]:.1f} GB totali, {m[1]:.1f} GB liberi" if m else "non rilevata"
 
 
 def doctor(cfg: DeviceConfig, config_path: str | None) -> int:
@@ -92,7 +96,7 @@ def doctor(cfg: DeviceConfig, config_path: str | None) -> int:
 
     print(f"Jarvis doctor — dispositivo «{cfg.device_id}»")
     line(None, f"Sistema: {platform.system()} {platform.release()} · CPU: {platform.processor() or platform.machine()}"
-               f" · {os.cpu_count()} thread · RAM: {_mem_gb()}")
+               f" · {os.cpu_count()} thread · RAM: {_ram_text()}")
     line(sys.version_info >= (3, 11), f"Python {platform.python_version()} (serve 3.11+)")
     cp = Path(config_path or os.environ.get("JARVIS_CONFIG", "config/device.toml"))
     line(cp.exists() or None, f"Configurazione: {cp}" + ("" if cp.exists() else " assente → uso i default restrittivi"))

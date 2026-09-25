@@ -134,3 +134,9 @@ async def test_budget_and_fallback(agent_cfg, apps):
     assert t1.status is Status.DONE and t1.metrics["spesa_eur"] == 0.5  # spesa registrata
     t2 = await o2.wait(o2.submit("seconda domanda libera").id)
     assert t2.status is Status.ERROR and "limite" in t2.result and len(costly.calls) == 1
+
+
+async def test_last_provider_is_recorded(agent_cfg, apps):
+    o = build_orchestrator(agent_cfg, apps, provider=MockProvider("ok"))
+    await o.wait(o.submit("dimmi qualcosa di interessante").id)
+    assert o.last_provider == "mock"

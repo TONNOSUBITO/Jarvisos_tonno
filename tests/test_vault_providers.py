@@ -51,30 +51,24 @@ async def test_openai_compatible_provider_with_mock_transport():
     assert seen["url"].endswith("/v1/chat/completions") and seen["auth"] == "Bearer k"
 
 
-def test_multiple_providers_from_config(tmp_path, monkeypatch):
+def test_providers_example_file(tmp_path, monkeypatch):
+    """config/providers.example.toml accodato a device.toml: 8 provider, saltati quelli senza chiave."""
+    from pathlib import Path
+
     from jarvis.config import load_config
     from jarvis.providers.base import build_provider
 
-    f = tmp_path / "d.toml"
-    f.write_text("""[model]
-enabled = true
-[[model.providers]]
-name = "groq"
-base_url = "https://api.groq.com/openai/v1"
-model = "m1"
-api_key_env = "GROQ_API_KEY"
-[[model.providers]]
-name = "gemini"
-base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
-model = "m2"
-api_key_env = "GEMINI_API_KEY"
-paid = true
-""")
-    monkeypatch.setenv("GROQ_API_KEY", "k1")
-    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    f = tmp_path / "device.toml"
+    f.write_text('[model]\nenabled = true\n' + Path("config/providers.example.toml").read_text(encoding="utf-8"),
+                 encoding="utf-8")
+    for var in ("GROQ", "CEREBRAS", "GEMINI", "MISTRAL", "OPENROUTER", "COHERE", "TOGETHER", "ANTHROPIC"):
+        monkeypatch.delenv(f"{var}_API_KEY", raising=False)
     cfg = load_config(f)
+    assert [p.name for p in cfg.model.providers] == [
+        "groq", "cerebras", "gemini", "mistral", "openrouter", "cohere", "together", "anthropic"]
+    assert [p.name for p in cfg.model.providers if p.paid] == ["together", "anthropic"]
+    assert build_provider(cfg.model, BudgetMeter(0)) is None  # nessuna chiave → nessun provider
+    monkeypatch.setenv("GEMINI_API_KEY", "k")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "k2")
     fb = build_provider(cfg.model, BudgetMeter(0))
-    assert [p.name for p in fb.providers] == ["groq", "gemini"]
-    assert fb.providers[0].api_key == "k1" and fb.providers[1].api_key == ""
-    assert fb.providers[1].is_paid and not fb.allow_paid
-    assert fb.providers[1].base_url == "https://generativelanguage.googleapis.com/v1beta/openai"
+    assert [p.name for p in fb.providers] == ["gemini", "anthropic"] and not fb.allow_paid

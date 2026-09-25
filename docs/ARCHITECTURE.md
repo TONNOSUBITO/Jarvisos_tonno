@@ -67,7 +67,7 @@ Stesso codice, `config/device.toml` locale per PC (`device_id`, piattaforma, app
 Ogni istanza controlla solo il proprio PC. Controllo remoto e sincronizzazione: Fase 4, separati.
 
 ## Stato condiviso
-`Task` (in `core/state.py`) è l'unica struttura letta da UI; HUD e Cockpit futuri leggeranno la stessa
+`Task` (in `core/state.py`) è l'unica struttura letta dall'HUD; un futuro Cockpit leggerà la stessa
 API `/api/state` e la stessa vault. Stati: in_ascolto, trascrizione, pianificazione, attesa_conferma,
 esecuzione, risposta, completato, fermato, errore.
 

@@ -80,6 +80,7 @@ class Orchestrator:
         self.tts = None    # TextToSpeech lato server, opzionale
         self.memory = None
         self.budget = None
+        self.last_provider = ""  # ultimo provider che ha risposto (mostrato nell'HUD)
 
     # ---------- API pubblica ----------
     def submit(self, text: str = "", audio=None) -> Task:
