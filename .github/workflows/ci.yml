@@ -44,6 +44,12 @@ jobs:
       - name: scripts\install.ps1
         shell: powershell
         run: powershell -ExecutionPolicy Bypass -File scripts\install.ps1
+      - name: Icona sul desktop creata dall'installer
+        shell: powershell
+        run: |
+          $p = Join-Path ([Environment]::GetFolderPath("Desktop")) "Jarvis.lnk"
+          if (-not (Test-Path $p)) { throw "Jarvis.lnk mancante" }
+          (New-Object -ComObject WScript.Shell).CreateShortcut($p).TargetPath
       - name: Config creata dall'installer
         shell: powershell
         run: Get-Content config\device.toml | Select-String -Pattern 'app_adapter|tts_engine|calcolatrice|blocco note'

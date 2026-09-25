@@ -57,4 +57,12 @@ Write-Host "5/5 Modelli voce"
 & $vpy -m jarvis models; Check "download modelli voce"
 
 & $vpy -m jarvis doctor
-Write-Host "Fatto. Avvio: scripts\run.bat"
+
+# Icona "Jarvis" sul desktop dell'utente (nessun privilegio; si elimina come un file qualsiasi)
+$desktop = [Environment]::GetFolderPath("Desktop")
+$lnk = (New-Object -ComObject WScript.Shell).CreateShortcut((Join-Path $desktop "Jarvis.lnk"))
+$lnk.TargetPath = (Resolve-Path scripts\run.bat).Path
+$lnk.WorkingDirectory = (Get-Location).Path
+$lnk.Description = "Avvia Jarvis"
+$lnk.Save()
+Write-Host "Fatto. Avvio: doppio clic su 'Jarvis' sul desktop (oppure scripts\run.bat)"
