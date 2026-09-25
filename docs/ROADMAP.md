@@ -47,6 +47,7 @@ frase «Cerca e apri documentazione» → trascritta correttamente, eseguita; `s
 | Tool negati o con dati privati nascosti al modello | ✅ |
 | Anti-esfiltrazione: dopo letture private, le azioni web richiedono conferma | ✅ |
 | Catena di fallback, rotte a pagamento disattivate, budget con blocco | ✅ |
+| OmniRoute locale come primo provider (`auto`), modello reale mostrato nell'HUD, `doctor` controlla che risponda, gateway spento → provider successivo in ≤3 s | ✅ con server simulato; 🧪 mai provato con OmniRoute reale |
 | Client OpenAI-compatibile | 🧪 provato contro Ollama 0.12.3 reale con `qwen3:1.7b` su 2 core: ogni richiesta oltre 5 min (timeout del server) → modello locale **non praticabile** sul 3200U. 14 provider cloud d'esempio con chiave dell'utente: endpoint verificati sulle documentazioni, mai chiamati |
 | Memoria su richiesta con conferma, elenco, oblio, modifica a mano | ✅ |
 | Ricerca nelle note, modifica ed eliminazione note da UI | ✅ |

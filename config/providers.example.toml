@@ -8,6 +8,12 @@
 # Endpoint e nomi dei modelli verificati sulle documentazioni ufficiali il 25/09/2026.
 
 [[model.providers]]
+name = "omniroute"                  # gateway locale: usa le TUE chiavi e i provider gratuiti che hai collegato
+base_url = "http://127.0.0.1:20128/v1"
+model = "auto"                      # OmniRoute sceglie il modello e cambia provider quando una quota finisce
+# Nessuna chiave: se OmniRoute e' spento, Jarvis passa subito ai provider seguenti.
+
+[[model.providers]]
 name = "groq"
 base_url = "https://api.groq.com/openai/v1"
 model = "openai/gpt-oss-20b"

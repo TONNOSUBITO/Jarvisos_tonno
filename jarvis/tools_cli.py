@@ -85,6 +85,24 @@ def _ram_text() -> str:
     return f"{m[0]:.1f} GB totali, {m[1]:.1f} GB liberi" if m else "non rilevata"
 
 
+def _is_loopback(url: str) -> bool:
+    from urllib.parse import urlparse
+
+    return urlparse(url).hostname in ("127.0.0.1", "localhost", "::1")
+
+
+def _local_models(base_url: str) -> int | None:
+    """Numero di modelli esposti da un gateway locale (OmniRoute, Ollama), None se non risponde."""
+    import httpx
+
+    try:
+        r = httpx.get(base_url.rstrip("/") + "/models", timeout=2.0)
+        r.raise_for_status()
+        return len(r.json().get("data", []))
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def doctor(cfg: DeviceConfig, config_path: str | None) -> int:
     ok = True
 
@@ -134,6 +152,10 @@ def doctor(cfg: DeviceConfig, config_path: str | None) -> int:
         for p in m.providers:
             key = f", chiave {p.api_key_env} {'presente' if os.environ.get(p.api_key_env) else 'MANCANTE'}" if p.api_key_env else ""
             line(None, f"Modello «{p.name}»: {p.base_url} ({p.model}){key}{' · A PAGAMENTO' if p.paid else ''}")
+            if _is_loopback(p.base_url):
+                n = _local_models(p.base_url)
+                line(None, f"  «{p.name}» risponde: {n} modelli" if n is not None
+                     else f"  «{p.name}» non risponde: avvialo (Jarvis passerà ai provider successivi)")
     else:
         line(None, "Modelli (livelli 2-3) disattivati")
     print("Tutto pronto." if ok else "Ci sono problemi da risolvere (✖).")

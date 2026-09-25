@@ -83,6 +83,7 @@ Provider pronti in [`config/providers.example.toml`](config/providers.example.to
 
 | # | Provider | Variabile nel `.env` | Modello | Trattamento |
 |---|---|---|---|---|
+| 0 | OmniRoute (locale) | nessuna | `auto` | gratuito il gateway; quote dei provider collegati |
 | 1 | Groq | `GROQ_API_KEY` | `openai/gpt-oss-20b` | gratuito |
 | 2 | Cerebras | `CEREBRAS_API_KEY` | `qwen-3.8-27b` | gratuito |
 | 3 | Gemini | `GEMINI_API_KEY` | `gemini-3.5-flash-lite` | gratuito, limiti bassi |
@@ -112,14 +113,12 @@ senza strumenti rispondono solo a domande.
    in `true`.
 4. `python -m jarvis doctor` mostra quali chiavi sono presenti (senza stamparle). Riavvia Jarvis.
 
-In alternativa, se usi già **OmniRoute** con le tue chiavi, basta un solo provider:
-```toml
-[[model.providers]]
-name = "omniroute"
-base_url = "http://127.0.0.1:20128/v1"
-model = "auto"
-```
-(OmniRoute deve essere acceso; i limiti di spesa si impostano in OmniRoute, Jarvis non ne conosce i prezzi.)
+**OmniRoute è il primo della lista**: se è acceso sul PC (`http://127.0.0.1:20128`), Jarvis usa il suo modello `auto`,
+che sceglie tra i provider che hai collegato in OmniRoute e cambia provider quando una quota finisce; l'HUD mostra quale
+modello ha risposto davvero (es. `omniroute · groq/...`). Se è spento, Jarvis passa in meno di 3 secondi ai provider con
+chiave nel `.env`. `python -m jarvis doctor` dice se OmniRoute risponde e quanti modelli vede.
+Le quote gratuite restano limitate e possono cambiare: non sono token illimitati. I limiti di spesa dei provider
+a pagamento collegati in OmniRoute si impostano in OmniRoute (Jarvis non ne conosce i prezzi).
 
 Cosa sapere:
 - con un provider cloud **i tuoi comandi escono dal PC**; file, memoria e note restano esclusi salvo
