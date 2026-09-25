@@ -23,6 +23,8 @@
 | File di segreti | `files.read` rifiuta `.env`, chiavi, `*password*`, `*token*`, `cookies*` ecc.; memoria e vault rifiutano testo che sembra un segreto |
 | Cancellazioni irreversibili | `files.delete` sposta in `.cestino-jarvis/` nella stessa cartella; nessuna sovrascrittura in `files.write`/`files.move` |
 | File operazioni fuori dalla cartella | `work_dir` unica, percorsi risolti e confinati, cestino non raggiungibile dai comandi |
+| Comandi verso Jev (TypeSafe) | opt-in (`[router] engine`), solo per comandi che le regole non capiscono; serve chiave e `budget_eur` > 0; Jev sceglie solo tra opzioni chiuse (intenti, app approvate) e le azioni passano dagli stessi permessi |
+| Skill malevole | nessuna importazione di skill di terzi: si creano a mano o con conferma sull'anteprima completa; rifiutano testo che sembra un segreto; ciò che descrivono passa comunque da `_execute` |
 | Modelli voce manomessi | `jarvis models` verifica SHA-256 dei file Kokoro (hash registrati al primo download del 25/09/2026 dalla release ufficiale) |
 
 ## Permessi

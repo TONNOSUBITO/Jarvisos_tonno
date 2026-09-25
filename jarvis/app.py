@@ -11,6 +11,7 @@ from jarvis.core.agent import Agent
 from jarvis.core.orchestrator import Orchestrator
 from jarvis.memory.vault import Vault
 from jarvis.providers.base import BudgetMeter, ModelProvider, build_provider
+from jarvis.routing.jev import build_jev
 from jarvis.routing.router import RuleRouter
 from jarvis.tools.apps import AppAdapter, OpenAppTool, make_adapter
 from jarvis.tools.audit import AuditLog
@@ -19,6 +20,7 @@ from jarvis.tools.files import (DeleteFileTool, ListFilesTool, MoveFileTool, Rea
                                 WriteFileTool)
 from jarvis.tools.memory import ForgetTool, ListMemoryTool, MemoryStore, RememberTool, SearchNotesTool
 from jarvis.tools.notes import SaveNoteTool
+from jarvis.tools.skills import ListSkillsTool, ReadSkillTool, SaveSkillTool, SkillStore
 
 
 def build_orchestrator(cfg: DeviceConfig, app_adapter: AppAdapter | None = None,
@@ -28,12 +30,14 @@ def build_orchestrator(cfg: DeviceConfig, app_adapter: AppAdapter | None = None,
     vault = Vault(cfg.vault_dir)
     memory = MemoryStore(vault)
     wd = WorkDir(cfg.work_dir)
+    skills = SkillStore(vault)
     tools = [
         OpenAppTool(cfg.allowed_apps, app_adapter or make_adapter(cfg.app_adapter)),
         WebSearchTool(session),
         WebOpenTool(session),
         SaveNoteTool(vault),
         RememberTool(memory), ListMemoryTool(memory), ForgetTool(memory), SearchNotesTool(vault),
+        ListSkillsTool(skills), ReadSkillTool(skills), SaveSkillTool(skills),
         ListFilesTool(wd), ReadFileTool(wd), WriteFileTool(wd), MoveFileTool(wd), DeleteFileTool(wd),
     ]
     audit = AuditLog(data / "audit.jsonl", cfg.device_id)
@@ -41,6 +45,7 @@ def build_orchestrator(cfg: DeviceConfig, app_adapter: AppAdapter | None = None,
     orch.vault = vault
     orch.memory = memory
     orch.budget = BudgetMeter(cfg.limits.budget_eur)
+    orch.jev = build_jev(cfg.router, list(cfg.allowed_apps), orch.budget)
     if provider is None:
         provider = build_provider(cfg.model, orch.budget)
     if provider is not None:

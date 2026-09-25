@@ -30,6 +30,9 @@ DEFAULT_PERMISSIONS: dict[str, str] = {
     "files.write": "confirm",
     "files.move": "confirm",
     "files.delete": "confirm", # sposta nel cestino, recuperabile
+    "skills.list": "auto",     # procedure scritte dall'utente nella vault
+    "skills.read": "auto",
+    "skills.save": "confirm",  # scrittura su disco: anteprima completa
     "shell.exec": "deny",      # non esiste nemmeno un tool: resta negato
 }
 
@@ -94,6 +97,19 @@ class ModelConfig:
 
 
 @dataclass
+class RouterConfig:
+    # "rules" = solo regole locali (gratis). "rules+jev" = se le regole non capiscono, chiede a Jev (TypeSafe):
+    # il testo del comando esce dal PC; serve la chiave nel .env e [limits] budget_eur > 0.
+    engine: str = "rules"
+    jev_url: str = "https://api.typesafe.ai/v1/systemone"
+    jev_model: str = "jev-latest"
+    jev_api_key_env: str = "TYPESAFE_API_KEY"
+    jev_min_confidence: float = 0.7
+    jev_price_in_per_mtok_eur: float = 0.042  # 0,042 $/Mtok in input (docs.typesafe.ai, 26/09/2026); output gratis
+    jev_timeout_s: float = 4.0
+
+
+@dataclass
 class DeviceConfig:
     device_id: str = "dev-cloud"
     data_dir: Path = Path("data")
@@ -106,6 +122,7 @@ class DeviceConfig:
     browser: BrowserConfig = field(default_factory=BrowserConfig)
     model: ModelConfig = field(default_factory=ModelConfig)
     voice: VoiceConfig = field(default_factory=VoiceConfig)
+    router: RouterConfig = field(default_factory=RouterConfig)
 
     def permission(self, capability: str) -> str:
         mode = self.permissions.get(capability, "deny")
@@ -155,5 +172,6 @@ def load_config(path: str | os.PathLike | None = None) -> DeviceConfig:
         browser=_section(BrowserConfig, raw.get("browser")),
         model=_model_section(raw.get("model")),
         voice=_section(VoiceConfig, raw.get("voice")),
+        router=_section(RouterConfig, raw.get("router")),
     )
     return cfg

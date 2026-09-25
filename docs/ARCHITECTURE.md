@@ -39,7 +39,7 @@ task_timeout avvolge l'intera attività, trascrizione inclusa.
 | `routing/router.py` | regole italiane, tolleranti alle trascrizioni |
 | `providers/base.py` | `ModelProvider`, OpenAI-compatibile, `GuardedProvider`, `FallbackProvider`, `BudgetMeter` |
 | `audio/` | decodifica WAV, STT, TTS |
-| `tools/` | browser, app, note, memoria, file, permessi, audit |
+| `tools/` | browser, app, note, memoria, skill, file, permessi, audit |
 | `memory/vault.py` | vault Markdown: scrittura senza sovrascrittura, ricerca, modifica, eliminazione |
 | `server.py`, `web/index.html` | API locale con token e UI |
 | `tools_cli.py` | `jarvis doctor`, `jarvis models` |
@@ -55,7 +55,7 @@ task_timeout avvolge l'intera attività, trascrizione inclusa.
 | Claude Code cloud | solo sviluppo | codice della repo |
 
 ## Interfacce estendibili
-- `IntentRouter.route(text) -> Intent` — `RuleRouter`; futuro `JevRouter` (solo classificazione in insieme chiuso).
+- `IntentRouter.route(text) -> Intent` — `RuleRouter`; se restituisce `unknown` e `[router] engine = "rules+jev"`, `JevRouter` (`routing/jev.py`, classificazione in insieme chiuso con soglia di confidenza), poi l'agente.
 - `ModelProvider.complete(messages, tools) -> ModelResponse` — `MockProvider`, `OpenAICompatibleProvider`
   (OmniRoute `/v1`, Ollama `/v1`); sempre dietro `GuardedProvider` (rotte a pagamento off, budget).
 - `Tool` con `capability`, `run`, `preview`, `stop`.

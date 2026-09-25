@@ -12,7 +12,7 @@ Si spende solo se abiliti tu un provider marcato `paid = true` **e** `allow_paid
 | Kokoro-82M (Fase 2) | locale, pesi Apache | 0 | fonte: [HF hexgrad/Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M), 25/09/2026 |
 | Ollama + modello piccolo | locale | 0, ma sul 3200U **troppo lento** (qwen3:1.7b >5 min/risposta su 2 core in cloud); qwen3:1.7b 1,4 GB, qwen3:4b 2,5 GB di download | fonte: [ollama.com/library/qwen3](https://ollama.com/library/qwen3), 25/09/2026. Velocità su Ryzen 3: **non misurata** |
 | OmniRoute (Fase 3) | gateway locale MIT (`npm install -g omniroute`, porta 20128, `/v1`) | gateway gratuito; **i provider dietro hanno quote e prezzi propri** | fonte: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute), 25/09/2026 |
-| TypeSafe Jev (Fase 3, opzionale) | cloud | **non verificato su fonte ufficiale**: fonti terze riportano $0,042 / M token in input | [pydantic.dev](https://pydantic.dev/docs/ai/models/typesafe/) non riporta prezzi |
+| TypeSafe Jev (router opzionale, `[router] engine = "rules+jev"`) | cloud | $0,042 per milione di token in input, output gratis; ~300 token a comando non capito dalle regole | [docs.typesafe.ai/models](https://docs.typesafe.ai/models), 26/09/2026 |
 
 
 ## Quote non garantite
