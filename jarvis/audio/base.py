@@ -64,7 +64,6 @@ class SpeechToText(ABC):
 
 class TextToSpeech(ABC):
     name = "base"
-    local = True            # False = invia testo a un servizio esterno
     content_type = "audio/wav"
 
     @abstractmethod

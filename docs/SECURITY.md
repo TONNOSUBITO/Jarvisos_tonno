@@ -24,14 +24,13 @@
 | Cancellazioni irreversibili | `files.delete` sposta in `.cestino-jarvis/` nella stessa cartella; nessuna sovrascrittura in `files.write`/`files.move` |
 | File operazioni fuori dalla cartella | `work_dir` unica, percorsi risolti e confinati, cestino non raggiungibile dai comandi |
 | Modelli voce manomessi | `jarvis models` verifica SHA-256 dei file Kokoro (hash registrati al primo download del 25/09/2026 dalla release ufficiale) |
-| TTS cloud involontario | Fish richiede `tts_engine = "fish"` **e** permesso `tts.cloud`; la UI mostra «CLOUD: il testo esce dal PC» |
 
 ## Permessi
 Tre livelli per capacità e per dispositivo (`config/device.toml`): `auto`, `confirm`, `deny`.
 Capacità non elencate = `deny`. Default:
-- `auto`: app approvate, ricerca e lettura web, bozze, elenco memoria, ricerca note, elenco/lettura file in `work_dir`;
+- `auto`: app approvate, ricerca e lettura web, elenco memoria, ricerca note, elenco/lettura file in `work_dir`;
 - `confirm`: salvataggio nota, «ricorda», «dimentica», creazione/spostamento/cestino file;
-- `deny`: modelli (`model.chat`), TTS cloud (`tts.cloud`), shell (`shell.exec`, non modificabile).
+- `deny`: modelli (`model.chat`), shell (`shell.exec`, non modificabile).
 
 Da Fase 3–4, **sempre `confirm`**: invio email/messaggi, pubblicazione, acquisti, download/esecuzione, installazioni,
 spostamento/cancellazione di molti file, uso di credenziali, modifica permessi o impostazioni importanti,

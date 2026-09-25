@@ -18,7 +18,7 @@ from jarvis.tools.browser import BrowserSession, WebOpenTool, WebSearchTool
 from jarvis.tools.files import (DeleteFileTool, ListFilesTool, MoveFileTool, ReadFileTool, WorkDir,
                                 WriteFileTool)
 from jarvis.tools.memory import ForgetTool, ListMemoryTool, MemoryStore, RememberTool, SearchNotesTool
-from jarvis.tools.notes import DraftNoteTool, SaveNoteTool
+from jarvis.tools.notes import SaveNoteTool
 
 
 def build_orchestrator(cfg: DeviceConfig, app_adapter: AppAdapter | None = None,
@@ -32,7 +32,6 @@ def build_orchestrator(cfg: DeviceConfig, app_adapter: AppAdapter | None = None,
         OpenAppTool(cfg.allowed_apps, app_adapter or make_adapter(cfg.app_adapter)),
         WebSearchTool(session),
         WebOpenTool(session),
-        DraftNoteTool(),
         SaveNoteTool(vault),
         RememberTool(memory), ListMemoryTool(memory), ForgetTool(memory), SearchNotesTool(vault),
         ListFilesTool(wd), ReadFileTool(wd), WriteFileTool(wd), MoveFileTool(wd), DeleteFileTool(wd),

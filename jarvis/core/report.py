@@ -8,7 +8,6 @@ _DONE_PHRASE = {
     "app.open": "ho aperto l'app {app}",
     "web.search": "ho cercato «{query}»",
     "web.open": "ho aperto {url}",
-    "notes.draft": "ho preparato una bozza",
     "notes.save": "ho salvato la nota nella vault",
     "memory.remember": "ho memorizzato «{fact}»",
     "memory.list": "ho letto la memoria",

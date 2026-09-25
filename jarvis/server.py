@@ -53,7 +53,7 @@ def _preload(orch: Orchestrator) -> None:
     """Carica STT/TTS locali in background; gli errori restano visibili al primo uso."""
     for comp in (orch.stt, orch.tts):
         loader = getattr(comp, "_load", None)
-        if loader and getattr(comp, "local", True):
+        if loader:
             try:
                 loader()
             except Exception as e:  # noqa: BLE001
@@ -116,7 +116,7 @@ def create_app(cfg: DeviceConfig, orch: Orchestrator, token: str | None = None,
         return {
             "device_id": cfg.device_id, "version": __version__,
             "stt": orch.stt.name if orch.stt else "none",
-            "tts": tts_name, "tts_local": bool(orch.tts is None or orch.tts.local),
+            "tts": tts_name,
             "speak_replies": v.speak_replies, "max_audio_s": v.max_audio_s,
             "model": "attivo" if orch.agent and orch.policy.decide("model.chat") is not Decision.DENY else "disattivato",
             "spesa_eur": round(orch.budget.spent_eur, 6) if orch.budget else 0.0,
@@ -140,13 +140,11 @@ def create_app(cfg: DeviceConfig, orch: Orchestrator, token: str | None = None,
     async def tts(body: SpeakIn) -> Response:
         if orch.tts is None:
             return Response(status_code=204)  # la UI usa la sintesi del browser
-        if not orch.tts.local and orch.policy.decide("tts.cloud") is Decision.DENY:
-            raise HTTPException(403, "TTS cloud non autorizzato (permesso tts.cloud)")
         try:
             audio = await orch.tts.synthesize(body.text)
         except VoiceUnavailable as e:
             raise HTTPException(503, str(e))
-        orch.audit.write("tts", engine=orch.tts.name, chars=len(body.text), local=orch.tts.local)
+        orch.audit.write("tts", engine=orch.tts.name, chars=len(body.text))
         return Response(audio, media_type=orch.tts.content_type)
 
     @app.post("/api/tasks/{task_id}/metric", dependencies=[Depends(auth)])

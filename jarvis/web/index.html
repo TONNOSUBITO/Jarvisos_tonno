@@ -234,7 +234,7 @@ async function refresh() {
     render(current ? s.tasks.find(t => t.id === current.id) || s.tasks[0] : s.tasks[0]);
     INFO = await jget("/api/info");
     $("info").innerHTML = "";
-    for (const txt of ["voce→testo: " + INFO.stt, "risposta vocale: " + INFO.tts + (INFO.tts_local ? " (locale)" : " (CLOUD: il testo esce dal PC)"),
+    for (const txt of ["voce→testo: " + INFO.stt, "risposta vocale: " + INFO.tts,
                        "modello: " + INFO.model, "spesa: " + INFO.spesa_eur + " / " + INFO.budget_eur + " €"]) {
       const sp = document.createElement("span"); sp.className = "pill"; sp.textContent = txt; $("info").append(sp);
     }

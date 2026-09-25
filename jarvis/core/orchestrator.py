@@ -23,7 +23,6 @@ from jarvis.tools.permissions import Decision, PermissionPolicy, action_hash
 
 # Riferimento a un risultato precedente negli argomenti di un'azione.
 FIRST_RESULT_URL = "$prev.first_result_url"
-PREV_DRAFT = "$prev.draft"
 
 
 class StepLimitExceeded(Exception):
@@ -59,8 +58,7 @@ def plan_for(intent: Intent) -> list[Action]:
         case "files_move":
             return [Action("files.move", {"src": s["src"], "dst": s["dst"]}, f"sposto {s['src']} (dopo conferma)")]
         case "note":
-            return [Action("notes.draft", {"text": s["text"]}, "preparo la bozza"),
-                    Action("notes.save", {"draft": PREV_DRAFT, "folder": "inbox"},
+            return [Action("notes.save", {"title": s["text"][:60], "body": s["text"], "folder": "inbox"},
                            "salvo la nota (solo dopo conferma)")]
     return []
 
@@ -225,10 +223,6 @@ class Orchestrator:
             if not results:
                 raise RuntimeError("Nessun risultato da aprire")
             out["url"] = results[0]["url"]
-        if out.get("draft") == PREV_DRAFT:
-            out.pop("draft")
-            out["title"] = prev.data["title"]
-            out["body"] = prev.data["body"]
         return out
 
     async def _execute(self, task: Task, tool_name: str, args: dict[str, Any]) -> ToolResult:

@@ -13,7 +13,7 @@ from pathlib import Path
 
 from jarvis.tools.audit import contains_secret
 
-FOLDERS = ("inbox", "daily", "projects", "reports", "skills", "memory")
+FOLDERS = ("inbox", "daily", "projects", "reports", "memory")
 
 
 class VaultError(Exception):

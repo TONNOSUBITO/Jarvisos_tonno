@@ -20,10 +20,8 @@ DEFAULT_PERMISSIONS: dict[str, str] = {
     "app.open": "auto",        # solo app in allowlist
     "web.search": "auto",
     "web.open": "auto",        # lettura pagine in browser dedicato
-    "notes.draft": "auto",     # bozza in memoria, nessuna scrittura
     "notes.save": "confirm",   # scrittura su disco: sempre conferma in Fase 1
     "model.chat": "deny",      # nessuna chiamata a modelli per default
-    "tts.cloud": "deny",       # invio di testo a TTS esterni (Fish): opt-in esplicito
     "memory.remember": "confirm",
     "memory.list": "auto",
     "memory.forget": "confirm",
@@ -60,18 +58,16 @@ class BrowserConfig:
 
 @dataclass
 class VoiceConfig:
-    # STT locale: "faster-whisper" (default, misurato più rapido in cloud) | "whispercpp" | "none"
+    # STT locale: "faster-whisper" | "none"
     stt_engine: str = "faster-whisper"
     stt_model: str = "base"          # multilingue; "small" solo se la CPU regge
     stt_language: str = "it"
-    # TTS: "kokoro" (locale) | "browser" (speechSynthesis locale) | "fish" (cloud, opt-in) | "none"
+    # TTS: "kokoro" (locale) | "browser" (speechSynthesis locale) | "none"
     tts_engine: str = "browser"
     tts_voice: str = "if_sara"       # Kokoro: if_sara / im_nicola
     tts_speed: float = 1.0
     kokoro_model: str = "data/models/kokoro-v1.0.onnx"
     kokoro_voices: str = "data/models/voices-v1.0.bin"
-    fish_model: str = "s2.1-pro-free"
-    fish_reference_id: str = ""      # id voce Fish; vuoto = voce di default del servizio
     speak_replies: bool = True
     preload: bool = True             # carica i modelli voce all'avvio (evita l'attesa al primo comando)
     max_audio_s: float = 30.0        # registrazioni più lunghe vengono rifiutate

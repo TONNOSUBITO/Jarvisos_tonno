@@ -17,10 +17,9 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-asyncio>=0.24"]
-# Voce locale. Versioni provate in cloud il 25/09/2026: faster-whisper 1.2.1, kokoro-onnx 0.6.1, pywhispercpp 1.5.1
+# Voce locale. Versioni provate in cloud il 25/09/2026: faster-whisper 1.2.1, kokoro-onnx 0.6.1
 voice = ["faster-whisper>=1.2"]
 tts = ["kokoro-onnx>=0.6"]
-whispercpp = ["pywhispercpp>=1.5"]
 
 [tool.setuptools.packages.find]
 include = ["jarvis*"]

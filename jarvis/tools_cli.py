@@ -53,7 +53,7 @@ def download_models(cfg: DeviceConfig) -> int:
             tmp.replace(target)
             print(f"✔ {name} verificato")
     stt = cfg.voice.stt_engine
-    if stt in ("faster-whisper", "whispercpp"):
+    if stt == "faster-whisper":
         from jarvis.audio.stt import make_stt
 
         print(f"↓ modello {stt} «{cfg.voice.stt_model}» (Hugging Face)…")
@@ -107,7 +107,7 @@ def doctor(cfg: DeviceConfig, config_path: str | None) -> int:
     except Exception as e:  # noqa: BLE001
         line(False, f"Playwright: {e}")
     v = cfg.voice
-    mods = {"faster-whisper": "faster_whisper", "whispercpp": "pywhispercpp"}
+    mods = {"faster-whisper": "faster_whisper"}
     if v.stt_engine in mods:
         line(importlib.util.find_spec(mods[v.stt_engine]) is not None,
              f"Trascrizione {v.stt_engine} installata (pip install -e .[voice])")
@@ -117,9 +117,6 @@ def doctor(cfg: DeviceConfig, config_path: str | None) -> int:
         line(importlib.util.find_spec("kokoro_onnx") is not None, "kokoro-onnx installato (pip install -e .[tts])")
         for f in (v.kokoro_model, v.kokoro_voices):
             line(Path(f).exists(), f"Modello Kokoro {f} (python -m jarvis models)")
-    elif v.tts_engine == "fish":
-        line(bool(os.environ.get("FISH_API_KEY")), "FISH_API_KEY nel .env (TTS cloud: il testo esce dal PC)")
-        line(cfg.permission("tts.cloud") != "deny", "permesso tts.cloud abilitato")
     else:
         line(None, f"Risposta vocale: {v.tts_engine}")
     for name, argv in cfg.allowed_apps.items():

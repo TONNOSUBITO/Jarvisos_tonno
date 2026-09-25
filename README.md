@@ -10,8 +10,8 @@ azioni delicate e ti risponde anche a voce. **Non è un sistema operativo**: «O
 | Funzione | Stato |
 |---|---|
 | UI web locale: parla/scrivi, stato, piano, conferme, risultato, log, **Stop**, misure, memoria, note | ✅ provata in cloud (Chromium headless) |
-| Push-to-talk (tasto o barra spaziatrice) → trascrizione locale (faster-whisper o whisper.cpp) | ✅ provata in cloud con **microfono simulato** (file audio); ❓ microfono reale da provare sul PC |
-| Risposta vocale locale Kokoro (voci italiane `if_sara`, `im_nicola`) / voce del browser / Fish Audio (cloud, opt-in) | ✅ Kokoro provato in cloud; ❓ qualità d'ascolto da giudicare tu; Fish solo con mock |
+| Push-to-talk (tasto o barra spaziatrice) → trascrizione locale (faster-whisper) | ✅ provata in cloud con **microfono simulato** (file audio); ❓ microfono reale da provare sul PC |
+| Risposta vocale locale Kokoro (voci italiane `if_sara`, `im_nicola`) / voce del browser | ✅ Kokoro provato in cloud; ❓ qualità d'ascolto da giudicare tu |
 | Comandi a regole in italiano (costo zero, nessuna rete) | ✅ |
 | Browser dedicato: cerca, apri risultato, leggi pagina | ✅ su sito di prova; ❓ DuckDuckGo reale (in cloud bloccato dal proxy) |
 | Apertura app approvate | ✅ con adapter simulato; ❓ app reali sul PC |
@@ -53,7 +53,7 @@ Dettagli e prima prova guidata: [docs/TEST_ON_PC.md](docs/TEST_ON_PC.md).
 | «cerca meteo Roma» | ricerca e mostra i risultati | no |
 | «cerca e apri documentazione python» | apre il primo risultato nel browser dedicato | no |
 | «apri il sito example.com» | apre la pagina | no |
-| «prepara una nota: comprare latte» | bozza → salvataggio in `vault/inbox/` | **sì** |
+| «prepara una nota: comprare latte» | anteprima → salvataggio in `vault/inbox/` | **sì** |
 | «ricorda che preferisco il caffè amaro» / «cosa ricordi» / «dimentica caffè» | memoria in `vault/memory/preferenze.md` | sì per salvare e dimenticare |
 | «cerca nelle note budget» | ricerca nella vault | no |
 | «elenca i file», «leggi il file appunti.txt» | solo in `work_dir` | no |
@@ -66,9 +66,9 @@ Tutto in `config/device.toml` (uno per PC, non va su GitHub). Le voci principali
 - `[apps]`: le app che Jarvis può aprire (`nome = ["eseguibile", "argomenti"]`).
 - `[device] work_dir`: l'unica cartella in cui gestisce file.
 - `[permissions]`: `auto` / `confirm` / `deny` per ogni capacità. Ciò che non è elencato è negato.
-- `[voice]`: motore di trascrizione e di voce (`kokoro`, `browser`, `fish`).
+- `[voice]`: motore di trascrizione e di voce (`kokoro`, `browser`).
 - `[model]` + `[[model.providers]]`: modelli per domande libere (vedi sotto). Disattivati di default.
-- Chiavi (Fish, OmniRoute) solo in `.env`, mai nel TOML.
+- Chiavi (es. OmniRoute) solo in `.env`, mai nel TOML.
 
 ### Attivare un modello (facoltativo)
 Locale e gratuito con [Ollama](https://ollama.com) (installalo dal sito ufficiale), poi `ollama pull qwen3:1.7b`:

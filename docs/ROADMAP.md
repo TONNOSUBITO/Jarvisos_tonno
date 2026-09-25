@@ -11,10 +11,9 @@ UI, router a regole, browser Playwright, app (mock), note con conferma, permessi
 | Push-to-talk in UI (tasto / barra spaziatrice), microfono acceso solo durante la pressione | ✅ con microfono simulato di Chromium; 🧪 microfono reale |
 | Audio solo in memoria, mai su disco; limite di durata e dimensione | ✅ |
 | STT locale faster-whisper `base` int8 (default) | ✅ trascrizione reale in cloud |
-| STT locale whisper.cpp (`pywhispercpp`) | ✅ provato a mano in cloud; nessun test automatico |
 | TTS locale Kokoro (`kokoro-onnx`, voci `if_sara` / `im_nicola`) | ✅ sintesi reale in cloud; 🧪 qualità all'ascolto |
 | TTS del browser (speechSynthesis) come fallback | 🧪 dipende dalle voci italiane installate nel sistema |
-| TTS Fish Audio opt-in (`s2.1-pro-free`, permesso `tts.cloud`) | 🎭 formato richiesta verificato su docs ufficiali, mai chiamato davvero |
+| Alternative rimosse (ponytail): whisper.cpp, Fish Audio, loader skill, tool bozza separato | ❌ tolte: nessun uso reale; riaggiungere solo se servono |
 | Precaricamento modelli all'avvio | ✅ |
 | Misure reali: `stt_ms`, `audio_s`, `prima_risposta_audio_ms`, `model_ms` in UI e audit | ✅ |
 | `NativeAppAdapter` (Popen senza shell) | 🧪 |

@@ -4,7 +4,6 @@ import pytest
 from jarvis.memory.vault import Vault, VaultError
 from jarvis.providers.base import (BudgetExceeded, BudgetMeter, GuardedProvider, MockProvider,
                                    OpenAICompatibleProvider, PaidRouteDisabled)
-from jarvis.skills.loader import load_skills, parse_skill
 
 
 def test_vault_crud_and_safety(tmp_path):
@@ -23,17 +22,6 @@ def test_vault_crud_and_safety(tmp_path):
         v.write_note("segreti", "x", "y")
     with pytest.raises(VaultError):
         v.write_note("inbox", "chiave", "api_key=abc123")
-
-
-def test_skills_loader(tmp_path):
-    skills = load_skills("skills")
-    assert [s.name for s in skills] == ["demo-ricerca-nota"]
-    assert "notes.save" in skills[0].uses
-    d = tmp_path / "x"
-    d.mkdir()
-    (d / "SKILL.md").write_text("---\nname: x\ndescription: d\nversion: 1\n---\ncorpo")
-    assert load_skills(tmp_path) == []  # non revisionata → ignorata
-    assert parse_skill(d / "SKILL.md").body == "corpo"
 
 
 async def test_budget_and_paid_routes():

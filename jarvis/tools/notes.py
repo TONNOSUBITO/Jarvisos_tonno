@@ -1,4 +1,4 @@
-"""Note/report: bozza (nessuna scrittura) e salvataggio in vault (con conferma)."""
+"""Note/report: salvataggio in vault, sempre con conferma e anteprima."""
 
 from __future__ import annotations
 
@@ -6,24 +6,6 @@ from typing import Any
 
 from jarvis.memory.vault import Vault, VaultError
 from jarvis.tools.base import Tool, ToolResult
-
-
-class DraftNoteTool(Tool):
-    name = "notes.draft"
-    capability = "notes.draft"
-    agent_visible = False  # l'agente scrive direttamente titolo e testo in notes.save
-
-    async def run(self, args: dict[str, Any]) -> ToolResult:
-        text = args["text"].strip()
-        title = args.get("title") or text[:60]
-        body = text
-        if args.get("sources"):
-            body += "\n\n## Fonti\n" + "\n".join(f"- {s}" for s in args["sources"])
-        return ToolResult(True, f"Bozza pronta: «{title}» ({len(body)} caratteri), non salvata",
-                          {"title": title, "body": body}, verified=True)
-
-    def preview(self, args: dict[str, Any]) -> str:
-        return f"Preparare bozza: {args.get('text', '')[:80]}"
 
 
 class SaveNoteTool(Tool):

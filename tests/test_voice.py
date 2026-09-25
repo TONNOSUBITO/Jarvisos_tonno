@@ -3,14 +3,12 @@ import os
 import wave
 from pathlib import Path
 
-import httpx
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
 from jarvis.app import build_orchestrator
 from jarvis.audio.base import AudioError, MockSTT, MockTTS, float32_to_wav, wav_to_float32
-from jarvis.audio.tts import FISH_TTS_URL, FishAudioTTS
 from jarvis.core.state import Status
 from jarvis.server import create_app
 
@@ -80,31 +78,6 @@ def test_tts_endpoint_local_and_browser(cfg, apps):
         assert c.post("/api/tts", json={"text": "ciao"}, headers=H).status_code == 204
         info = c.get("/api/info", headers=H).json()
         assert info["tts"] == "browser" and info["model"] == "disattivato"
-
-
-def test_cloud_tts_needs_permission(cfg, apps):
-    fish = FishAudioTTS(api_key="k", transport=httpx.MockTransport(lambda r: httpx.Response(200, content=b"RIFF")))
-    c, _ = client(cfg, apps, tts=fish)
-    with c:
-        assert c.post("/api/tts", json={"text": "ciao"}, headers=H).status_code == 403
-    cfg.permissions["tts.cloud"] = "auto"
-    c, _ = client(cfg, apps, tts=fish)
-    with c:
-        assert c.post("/api/tts", json={"text": "ciao"}, headers=H).status_code == 200
-        assert c.get("/api/info", headers=H).json()["tts_local"] is False
-
-
-async def test_fish_request_format():
-    seen = {}
-
-    def handler(req: httpx.Request):
-        seen.update(url=str(req.url), auth=req.headers["authorization"], model=req.headers["model"], body=req.content)
-        return httpx.Response(200, content=b"RIFFxxxx")
-
-    out = await FishAudioTTS("s2.1-pro-free", "voce1", api_key="k", transport=httpx.MockTransport(handler)).synthesize("ciao")
-    assert out.startswith(b"RIFF") and seen["url"] == FISH_TTS_URL
-    assert seen["auth"] == "Bearer k" and seen["model"] == "s2.1-pro-free"
-    assert b'"reference_id":"voce1"' in seen["body"].replace(b" ", b"") and b'"format":"wav"' in seen["body"].replace(b" ", b"")
 
 
 MODELS = Path("data/models")
