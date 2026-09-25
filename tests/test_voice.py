@@ -1,4 +1,5 @@
 import io
+import os
 import wave
 from pathlib import Path
 
@@ -107,12 +108,15 @@ async def test_fish_request_format():
 
 
 MODELS = Path("data/models")
+# In CI dopo l'installer: i modelli DEVONO esserci, niente skip silenziosi.
+REQUIRE = os.environ.get("JARVIS_REQUIRE_VOICE_MODELS") == "1"
 
 
-@pytest.mark.skipif(not (MODELS / "kokoro-v1.0.onnx").exists(), reason="modelli voce non scaricati")
+@pytest.mark.skipif(not REQUIRE and not (MODELS / "kokoro-v1.0.onnx").exists(), reason="modelli voce non scaricati")
 async def test_real_roundtrip_kokoro_to_whisper(tmp_path):
     """Integrazione reale (locale): Kokoro dice una frase, faster-whisper la trascrive."""
-    pytest.importorskip("kokoro_onnx"); pytest.importorskip("faster_whisper")
+    if not REQUIRE:
+        pytest.importorskip("kokoro_onnx"); pytest.importorskip("faster_whisper")
     from jarvis.audio.stt import FasterWhisperSTT
     from jarvis.audio.tts import KokoroTTS
     from jarvis.routing.router import RuleRouter
