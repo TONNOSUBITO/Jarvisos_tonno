@@ -52,7 +52,7 @@ async def test_openai_compatible_provider_with_mock_transport():
 
 
 def test_providers_example_file(tmp_path, monkeypatch):
-    """config/providers.example.toml accodato a device.toml: 14 provider, saltati quelli senza chiave."""
+    """config/providers.example.toml accodato a device.toml: 15 provider, saltati quelli senza chiave."""
     from pathlib import Path
 
     from jarvis.config import load_config
@@ -62,18 +62,20 @@ def test_providers_example_file(tmp_path, monkeypatch):
     f.write_text('[model]\nenabled = true\n' + Path("config/providers.example.toml").read_text(encoding="utf-8"),
                  encoding="utf-8")
     for p in load_config(f).model.providers:
-        monkeypatch.delenv(p.api_key_env, raising=False)
+        if p.api_key_env:
+            monkeypatch.delenv(p.api_key_env, raising=False)
     cfg = load_config(f)
     assert [p.name for p in cfg.model.providers] == [
-        "groq", "cerebras", "gemini", "mistral", "openrouter", "cohere", "huggingface",
+        "omniroute", "groq", "cerebras", "gemini", "mistral", "openrouter", "cohere", "huggingface",
         "nvidia", "together", "anthropic", "deepseek", "fireworks", "openai", "xai"]
     assert [p.name for p in cfg.model.providers if not p.paid] == [
-        "groq", "cerebras", "gemini", "mistral", "openrouter", "cohere", "huggingface"]
-    assert build_provider(cfg.model, BudgetMeter(0)) is None  # nessuna chiave → nessun provider
+        "omniroute", "groq", "cerebras", "gemini", "mistral", "openrouter", "cohere", "huggingface"]
+    # nessuna chiave → resta solo OmniRoute locale (senza chiave)
+    assert [p.name for p in build_provider(cfg.model, BudgetMeter(0)).providers] == ["omniroute"]
     monkeypatch.setenv("GEMINI_API_KEY", "k")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "k2")
     fb = build_provider(cfg.model, BudgetMeter(0))
-    assert [p.name for p in fb.providers] == ["gemini", "anthropic"] and not fb.allow_paid
+    assert [p.name for p in fb.providers] == ["omniroute", "gemini", "anthropic"] and not fb.allow_paid
 
 
 def test_providers_example_is_ascii():
@@ -81,3 +83,33 @@ def test_providers_example_is_ascii():
     from pathlib import Path
 
     Path("config/providers.example.toml").read_bytes().decode("ascii")
+
+
+async def test_gateway_reports_served_model_and_fallback_on_bad_replies():
+    """OmniRoute con model "auto": l'HUD mostra il modello reale; spento o risposta rotta → provider successivo."""
+    import httpx
+
+    from jarvis.providers.base import FallbackProvider, OpenAICompatibleProvider
+
+    def down(req):
+        raise httpx.ConnectError("refused")
+
+    def broken(req):
+        return httpx.Response(200, json={"choices": []})
+
+    def ok(req):
+        return httpx.Response(200, json={"model": "groq/llama-x", "choices": [{"message": {"content": "ciao"}}]})
+
+    mk = lambda name, h: OpenAICompatibleProvider("http://127.0.0.1:20128/v1", "auto", label=name,
+                                                  transport=httpx.MockTransport(h))
+    fb = FallbackProvider([mk("spento", down), mk("rotto", broken), mk("omniroute", ok)], BudgetMeter(0), False)
+    r = await fb.complete([{"role": "user", "content": "x"}])
+    assert r.text == "ciao" and r.provider == "omniroute · groq/llama-x"
+    assert [e.split(":")[0] for e in fb.last_errors] == ["spento", "rotto"]
+
+
+def test_doctor_local_gateway_probe():
+    from jarvis.tools_cli import _is_loopback, _local_models
+
+    assert _is_loopback("http://127.0.0.1:20128/v1") and not _is_loopback("https://api.groq.com/openai/v1")
+    assert _local_models("http://127.0.0.1:9/v1") is None  # porta chiusa: nessuna eccezione

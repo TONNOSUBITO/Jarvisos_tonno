@@ -96,7 +96,9 @@ class OpenAICompatibleProvider(ModelProvider):
         body: dict[str, Any] = {"model": self.model, "messages": messages}
         if tools:
             body["tools"] = tools
-        async with httpx.AsyncClient(timeout=timeout_s, transport=self._transport) as c:
+        # connessione breve: un gateway locale spento (es. OmniRoute) non deve far aspettare
+        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout_s, connect=min(timeout_s, 3.0)),
+                                     transport=self._transport) as c:
             r = await c.post(f"{self.base_url}/chat/completions", json=body, headers=headers)
             r.raise_for_status()
             data = r.json()
@@ -104,7 +106,10 @@ class OpenAICompatibleProvider(ModelProvider):
         usage = data.get("usage") or {}
         cost = (usage.get("prompt_tokens", 0) * self.price_in
                 + usage.get("completion_tokens", 0) * self.price_out) / 1_000_000
-        return ModelResponse(msg.get("content") or "", msg.get("tool_calls") or [], cost, self.name)
+        # i gateway con model "auto" dicono quale modello ha risposto davvero
+        served = data.get("model") if data.get("model") not in (None, "", self.model) else ""
+        return ModelResponse(msg.get("content") or "", msg.get("tool_calls") or [], cost,
+                             f"{self.name} · {served}" if served else self.name)
 
 
 class GuardedProvider:
@@ -147,7 +152,7 @@ class FallbackProvider(ModelProvider):
                 raise
             except PaidRouteDisabled as e:
                 self.last_errors.append(str(e))
-            except (httpx.HTTPError, KeyError, ValueError) as e:
+            except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as e:
                 self.last_errors.append(f"{p.name}: {type(e).__name__}")
         raise RuntimeError("Nessun modello disponibile: " + "; ".join(self.last_errors or ["nessun provider configurato"]))
 
