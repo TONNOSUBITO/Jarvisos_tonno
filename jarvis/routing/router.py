@@ -67,6 +67,7 @@ def normalize(text: str) -> str:
     # forme cortesi/infinite del parlato → imperativo delle regole ("puoi aprire" → "apri")
     t = re.sub(r"^(?:per favore\s+)?(?:mi\s+)?(?:(?:puoi|potresti|riesci a|vorrei|voglio)\s+)?", "", t, flags=re.I)
     t = _VERBS.sub(lambda m: _VERB_MAP[m.group(1).lower()], t)
+    t = re.sub(r"\bappr[iì]\b", "apri", t, flags=re.I)  # Whisper sente «apri» come «apprì»
     return t.strip()
 
 
