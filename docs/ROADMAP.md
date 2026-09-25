@@ -19,7 +19,7 @@ UI, router a regole, browser Playwright, app (mock), note con conferma, permessi
 | Misure reali: `stt_ms`, `audio_s`, `prima_risposta_audio_ms`, `model_ms` in UI e audit | ✅ |
 | `NativeAppAdapter` (Popen senza shell) | 🧪 |
 | Installer Linux | ✅ eseguito su un clone pulito in cloud |
-| Installer Windows | 🧪 script non eseguito; **CI su Windows verde** il 25/09/2026 (installazione dipendenze voce, Chromium, suite di test senza il test voce reale che richiede i modelli, doctor) |
+| Installer Windows | ✅ `install.ps1` eseguito in CI su Windows pulito (PowerShell 5.1, Python 3.13): dipendenze, Chromium, modelli verificati, config; poi test voce reale Kokoro → Whisper verde. 🧪 mai su un PC reale |
 | `jarvis doctor`, `jarvis models` (hash SHA-256) | ✅ |
 | Scorciatoia push-to-talk globale (fuori dal browser) | ❌ richiede hook di tastiera di sistema: rimandata |
 
