@@ -60,6 +60,7 @@ def client(cfg, apps, **kw):
 
 def test_voice_endpoint(cfg, apps):
     c, _ = client(cfg, apps, stt=MockSTT("apri calcolatrice"))
+    assert c is not None
     with c:
         assert c.post("/api/voice", content=wav(), headers=H).json()["source"] == "voce"
         assert c.post("/api/voice", content=b"xx", headers=H).status_code == 400

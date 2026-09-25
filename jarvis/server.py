@@ -3,6 +3,8 @@ incluso nella pagina (protegge da CSRF e da altri siti aperti nel browser)."""
 
 from __future__ import annotations
 
+import asyncio
+import logging
 import secrets
 from contextlib import asynccontextmanager
 from importlib.resources import files
@@ -47,12 +49,25 @@ class ConfirmIn(BaseModel):
     approve: bool
 
 
+def _preload(orch: Orchestrator) -> None:
+    """Carica STT/TTS locali in background; gli errori restano visibili al primo uso."""
+    for comp in (orch.stt, orch.tts):
+        loader = getattr(comp, "_load", None)
+        if loader and getattr(comp, "local", True):
+            try:
+                loader()
+            except Exception as e:  # noqa: BLE001
+                logging.getLogger("jarvis").warning("Precaricamento %s fallito: %s", comp.name, e)
+
+
 def create_app(cfg: DeviceConfig, orch: Orchestrator, token: str | None = None,
                allowed_hosts: list[str] | None = None) -> FastAPI:
     token = token or secrets.token_urlsafe(24)
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
+        if cfg.voice.preload:
+            asyncio.get_running_loop().run_in_executor(None, _preload, orch)
         yield
         await orch.stop()  # chiude browser e attività alla chiusura
 

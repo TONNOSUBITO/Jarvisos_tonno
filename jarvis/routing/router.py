@@ -40,7 +40,7 @@ _RULES: list[tuple[str, re.Pattern[str]]] = [
     ("files_delete", re.compile(r"^(?:elimina|cancella|cestina) (?:il )?file\s+(?P<path>.+)$")),
     ("files_move", re.compile(r"^(?:sposta|rinomina) (?:il )?file\s+(?P<src>.+?)\s+(?:in|a|come)\s+(?P<dst>.+)$")),
     ("web_search_open", re.compile(
-        r"^(?:cerca e apri|trova e apri|apri il primo risultato (?:per|di|su))\s+(?P<query>.+)$")),
+        r"^(?:(?:cerca|trova)\s+(?:e|ed|i|e poi|poi)\s+apri|apri il primo risultato (?:per|di|su))\s+(?P<query>.+)$")),
     ("web_open", re.compile(r"^(?:apri|vai su|visita)\s+(?:il sito|la pagina|il link)\s+(?P<url>\S+)$")),
     ("web_search", re.compile(
         r"^(?:cerca|ricerca|trova)(?:\s+(?:su internet|online|sul web|in rete))?\s+(?P<query>.+)$")),
@@ -52,10 +52,11 @@ _RULES: list[tuple[str, re.Pattern[str]]] = [
 
 
 def normalize(text: str) -> str:
-    t = text.strip()
+    # la trascrizione vocale aggiunge punteggiatura e maiuscole: la togliamo ai bordi
+    t = text.strip().strip("\"'«»“”")
     t = _WAKE.sub("", t)
     t = re.sub(r"\s+", " ", t)
-    t = t.rstrip(".!?;")
+    t = re.sub(r"[.!?;,]+$", "", t)
     return t.strip()
 
 

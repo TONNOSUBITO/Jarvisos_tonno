@@ -73,6 +73,7 @@ class VoiceConfig:
     fish_model: str = "s2.1-pro-free"
     fish_reference_id: str = ""      # id voce Fish; vuoto = voce di default del servizio
     speak_replies: bool = True
+    preload: bool = True             # carica i modelli voce all'avvio (evita l'attesa al primo comando)
     max_audio_s: float = 30.0        # registrazioni più lunghe vengono rifiutate
 
 

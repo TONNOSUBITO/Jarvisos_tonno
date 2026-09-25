@@ -35,6 +35,8 @@ def cfg(tmp_path, site_url):
     c.browser.search_url = site_url + "/search.html?q={q}"
     c.browser.result_selector = "a.result"
     c.limits.confirm_timeout_s = 5
+    c.voice.preload = False       # niente download di modelli nei test
+    c.voice.stt_engine = "none"
     return c
 
 
