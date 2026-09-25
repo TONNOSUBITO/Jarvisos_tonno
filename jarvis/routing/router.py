@@ -1,9 +1,7 @@
 """Instradamento delle richieste.
 
 Livello 1: regole deterministiche locali (costo zero, nessuna rete).
-Livello 2/3: modello / agente — non attivi in Fase 1.
-Un adattatore Jev (TypeSafe) potrà implementare `IntentRouter` in Fase 3,
-solo dopo un confronto misurato con `RuleRouter`.
+Se le regole non capiscono: Jev (TypeSafe, `jarvis/routing/jev.py`, opt-in), poi modello / agente.
 """
 
 from __future__ import annotations
@@ -29,6 +27,9 @@ _URL = re.compile(r"^(?:https?://)?[\w\-]+(?:\.[\w\-]+)+(?::\d+)?(?:/\S*)?$", re
 
 _RULES: list[tuple[str, re.Pattern[str]]] = [
     ("stop", re.compile(r"^(?:stop|fermati|ferma(?:ti)? tutto|basta|annulla)$")),
+    ("skill_save", re.compile(r"^(?:crea|salva|impara)(?: una| la| come)? skill\s+(?P<name>[^:]+?)\s*:\s*(?P<text>.+)$")),
+    ("skill_list", re.compile(r"^(?:(?:elenca|mostra(?:mi)?)(?: le)? skill|quali skill (?:hai|conosci))$")),
+    ("skill_read", re.compile(r"^(?:mostra(?:mi)?|leggi|apri)(?: la)? skill\s+(?P<name>.+)$")),
     ("memory_list", re.compile(r"^(?:cosa ricordi(?: di me)?|cosa sai di me|mostra(?:mi)? (?:la )?memoria)$")),
     ("remember", re.compile(r"^(?:ricorda(?:ti)?(?: che)?|memorizza(?: che)?)\s+(?P<fact>.+)$")),
     ("forget", re.compile(r"^(?:dimentica(?: che)?|cancella dalla memoria)\s+(?P<query>.+)$")),

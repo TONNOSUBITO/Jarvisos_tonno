@@ -64,6 +64,10 @@ kokoro_voices = "data/models/voices-v1.0.bin"
 speak_replies = true
 max_audio_s = 30
 
+# Router Jev (TypeSafe), facoltativo: capisce i comandi che le regole non coprono. Vedi README.
+# [router]
+# engine = "rules+jev"           # serve TYPESAFE_API_KEY nel .env e [limits] budget_eur > 0
+
 [model]                          # livelli 2-3: disattivato finché non lo abiliti
 enabled = false
 allow_paid = false
@@ -71,5 +75,5 @@ timeout_s = 30
 agent_tools = true
 allow_private_data = false       # true = file/memoria/note possono andare al modello
 
-# Provider: accoda config/providers.example.toml (8 provider verificati, in ordine di fallback).
+# Provider: accoda config/providers.example.toml (14 provider verificati, in ordine di fallback).
 # La chiave va nel .env: nel TOML solo il NOME della variabile (api_key_env).

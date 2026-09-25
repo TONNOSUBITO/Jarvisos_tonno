@@ -13,6 +13,8 @@ azioni delicate e ti risponde anche a voce. **Non è un sistema operativo**: «O
 | Push-to-talk (tasto o barra spaziatrice) → trascrizione locale (faster-whisper) | ✅ provata in cloud con **microfono simulato** (file audio); ❓ microfono reale da provare sul PC |
 | Risposta vocale locale Kokoro (voci italiane `if_sara`, `im_nicola`) / voce del browser | ✅ Kokoro provato in cloud; ❓ qualità d'ascolto da giudicare tu |
 | Comandi a regole in italiano (costo zero, nessuna rete) | ✅ |
+| Router Jev (TypeSafe), facoltativo: capisce i comandi che le regole non coprono («mi fai due conti?» → calcolatrice) | ✅ con API simulata; ❓ mai chiamato davvero |
+| Skill: procedure che insegni a Jarvis («crea la skill email-cliente: ...») | ✅ |
 | Browser dedicato: cerca, apri risultato, leggi pagina | ✅ su sito di prova; ❓ DuckDuckGo reale: blocca gli IP dei datacenter (cloud e GitHub), da casa dovrebbe funzionare; se mostra un controllo anti-robot Jarvis lo dice e lascia la pagina aperta |
 | Apertura app approvate | ✅ con adapter simulato; ❓ app reali sul PC |
 | File in una cartella autorizzata (elenca, leggi, crea, sposta, cestina con conferma) | ✅ |
@@ -59,6 +61,7 @@ Dettagli e prima prova guidata: [docs/TEST_ON_PC.md](docs/TEST_ON_PC.md).
 | «cerca nelle note budget» | ricerca nella vault | no |
 | «elenca i file», «leggi il file appunti.txt» | solo in `work_dir` | no |
 | «sposta il file a.txt in archivio», «elimina il file vecchio.txt» | sposta / mette nel cestino `.cestino-jarvis` | **sì** |
+| «crea la skill email-cliente: rispondi cortese, firma Paolo» / «elenca le skill» / «mostra la skill email-cliente» | procedura riutilizzabile in `vault/skills/`; l'agente la segue | sì per salvare |
 | «stop», «fermati» (o pulsante ■ / tasto Esc) | ferma tutto e chiude il browser | — |
 | qualsiasi altra domanda | se hai attivato un modello: risposta o compito multi-passo; altrimenti chiede di riformulare | per le azioni delicate sì |
 
@@ -124,6 +127,21 @@ Cosa sapere:
 - se un provider fallisce o finisce la quota, Jarvis passa al successivo;
 - i provider `paid = true` restano bloccati finché non imposti `allow_paid = true` e un `budget_eur` > 0;
 - l'agente usa gli strumenti di Jarvis con gli stessi permessi e conferme: la chiave dà accesso al modello, non al PC.
+
+### Router Jev (facoltativo, a pagamento)
+[Jev](https://docs.typesafe.ai) di TypeSafe **non risponde alle domande**: sceglie tra opzioni chiuse. Jarvis lo usa solo
+quando le regole non capiscono, per scegliere l'intento (aprire un'app tra quelle approvate, cercare sul web, cercare
+nelle note, ecc.). Sotto la soglia di confidenza passa la richiesta al modello, come prima.
+Costo: $0,042 per milione di token in input (output gratis), ~300 token a comando: 10 € bastano per centinaia di migliaia
+di comandi. Il testo del comando va ai server TypeSafe.
+1. Chiave da [console.typesafe.ai](https://console.typesafe.ai) → nel `.env`: `TYPESAFE_API_KEY=...`
+2. In `config\device.toml`: aggiungi
+   ```toml
+   [router]
+   engine = "rules+jev"
+   ```
+   e in `[limits]` un `budget_eur` > 0 (es. `1.0`).
+3. Riavvia Jarvis: nel registro dell'attività compare `Jev: open_app (confidenza 0.91)`.
 
 ## Fermare e disinstallare
 - Fermare: **■ Stop** o tasto Esc (ferma attività, voce e browser), poi Ctrl+C nel terminale.

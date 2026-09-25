@@ -57,6 +57,12 @@ def plan_for(intent: Intent) -> list[Action]:
             return [Action("files.delete", {"path": s["path"]}, f"sposto nel cestino {s['path']} (dopo conferma)")]
         case "files_move":
             return [Action("files.move", {"src": s["src"], "dst": s["dst"]}, f"sposto {s['src']} (dopo conferma)")]
+        case "skill_save":
+            return [Action("skills.save", {"name": s["name"], "text": s["text"]}, "salvo la skill (dopo conferma)")]
+        case "skill_list":
+            return [Action("skills.list", {}, "elenco le skill")]
+        case "skill_read":
+            return [Action("skills.read", {"name": s["name"]}, f"leggo la skill «{s['name']}»")]
         case "note":
             return [Action("notes.save", {"title": s["text"][:60], "body": s["text"], "folder": "inbox"},
                            "salvo la nota (solo dopo conferma)")]
@@ -80,6 +86,7 @@ class Orchestrator:
         self.tts = None    # TextToSpeech lato server, opzionale
         self.memory = None
         self.budget = None
+        self.jev = None    # JevRouter, opzionale: solo quando le regole non capiscono
         self.last_provider = ""  # ultimo provider che ha risposto (mostrato nell'HUD)
 
     # ---------- API pubblica ----------
@@ -185,6 +192,12 @@ class Orchestrator:
         # nel registro solo il comando (max 500 caratteri), mai l'audio
         self.audit.write("task_start", task=task.id, command=task.command, source=task.source)
         intent = self.router.route(task.command)
+        if intent.kind == "unknown" and self.jev is not None:
+            t0 = time.monotonic()
+            intent, note = await self.jev.route_async(task.command)
+            task.metrics["router_ms"] = round((time.monotonic() - t0) * 1000)
+            task.add_log(note)
+            self.audit.write("jev", task=task.id, note=note, intent=intent.kind, ms=task.metrics["router_ms"])
         task.intent = intent.kind
         if intent.kind == "stop":
             await self.stop(exclude=task.id)
