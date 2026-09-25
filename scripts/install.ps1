@@ -6,21 +6,28 @@
 $ErrorActionPreference = "Stop"
 Set-Location (Join-Path $PSScriptRoot "..")
 
-$py = "py"
-try { & $py -3.11 -c "import sys" } catch { $py = "python" }
-$ver = if ($py -eq "py") { @("-3.11") } else { @() }
+# Usa il launcher "py -3" se presente, altrimenti "python" nel PATH.
+$py = "python"; $ver = @()
+if (Get-Command py -ErrorAction SilentlyContinue) {
+  & py -3 -c "import sys" 2>$null
+  if ($LASTEXITCODE -eq 0) { $py = "py"; $ver = @("-3") }
+}
+if (-not (Get-Command $py -ErrorAction SilentlyContinue)) {
+  throw "Python non trovato. Installa Python 3.11+ da https://www.python.org/downloads/ (spunta 'Add to PATH')."
+}
+function Check($what) { if ($LASTEXITCODE -ne 0) { throw "Fallito: $what (codice $LASTEXITCODE)" } }
 
 Write-Host "1/5 Ambiente virtuale .venv"
-if (-not (Test-Path .venv)) { & $py @ver -m venv .venv }
+if (-not (Test-Path .venv)) { & $py @ver -m venv .venv; Check "creazione .venv" }
 $vpy = ".\.venv\Scripts\python.exe"
-& $vpy -c "import sys; assert sys.version_info >= (3, 11), 'serve Python 3.11+'"
+& $vpy -c "import sys; assert sys.version_info >= (3, 11), 'serve Python 3.11+'"; Check "versione Python"
 & $vpy -m pip install --upgrade pip | Out-Null
 
 Write-Host "2/5 Dipendenze (voce locale inclusa)"
-& $vpy -m pip install -e ".[voice,tts]"
+& $vpy -m pip install -e ".[voice,tts]"; Check "installazione dipendenze"
 
 Write-Host "3/5 Chromium dedicato per Playwright"
-& $vpy -m playwright install chromium
+& $vpy -m playwright install chromium; Check "download Chromium"
 
 Write-Host "4/5 Configurazione"
 if (-not (Test-Path config\device.toml)) {
@@ -35,7 +42,7 @@ if (-not (Test-Path config\device.toml)) {
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 
 Write-Host "5/5 Modelli voce"
-& $vpy -m jarvis models
+& $vpy -m jarvis models; Check "download modelli voce"
 
 & $vpy -m jarvis doctor
 Write-Host "Fatto. Avvio: scripts\run.bat"

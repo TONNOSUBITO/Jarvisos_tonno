@@ -45,6 +45,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--kokoro", action="store_true", help="con 'models': scarica Kokoro anche se non selezionato")
     a = ap.parse_args(argv)
 
+    for stream in (sys.stdout, sys.stderr):  # console Windows non UTF-8: niente crash sui simboli
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
     load_dotenv()
     cfg = load_config(a.config)
     if a.command == "doctor":
