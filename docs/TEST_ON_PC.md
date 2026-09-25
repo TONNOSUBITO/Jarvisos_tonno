@@ -37,7 +37,7 @@ Poi apri `config/device.toml` e controlla:
 | 3 | Scrivi «apri regedit» | rifiutato, non si apre nulla | |
 | 4 | Tieni premuto 🎤, di' «apri blocco note», rilascia | il browser chiede il microfono (la prima volta), poi si apre l'app | |
 | 5 | Barra spaziatrice tenuta premuta: «cerca e apri meteo Roma» | si apre una finestra Chromium **separata** con il primo risultato | |
-| 6 | Se il 5 dice «Nessun risultato» | annotalo: il selettore di DuckDuckGo va aggiornato | |
+| 6 | Se il 5 dice «Nessun risultato…» | se parla di controllo anti-robot, risolvilo nella finestra e riprova; altrimenti annotalo (selettore da aggiornare) | |
 | 7 | «prepara una nota: comprare il latte» → Rifiuta | nessun file creato | |
 | 8 | Stessa nota → Conferma | file in `data/vault/inbox/`, visibile nella UI, apribile con Obsidian | |
 | 9 | «ricorda che preferisco il caffè amaro» → Conferma, poi «cosa ricordi» | la risposta contiene il caffè | |

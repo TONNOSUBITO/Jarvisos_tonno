@@ -13,7 +13,7 @@ azioni delicate e ti risponde anche a voce. **Non è un sistema operativo**: «O
 | Push-to-talk (tasto o barra spaziatrice) → trascrizione locale (faster-whisper) | ✅ provata in cloud con **microfono simulato** (file audio); ❓ microfono reale da provare sul PC |
 | Risposta vocale locale Kokoro (voci italiane `if_sara`, `im_nicola`) / voce del browser | ✅ Kokoro provato in cloud; ❓ qualità d'ascolto da giudicare tu |
 | Comandi a regole in italiano (costo zero, nessuna rete) | ✅ |
-| Browser dedicato: cerca, apri risultato, leggi pagina | ✅ su sito di prova; ❓ DuckDuckGo reale (in cloud bloccato dal proxy) |
+| Browser dedicato: cerca, apri risultato, leggi pagina | ✅ su sito di prova; ❓ DuckDuckGo reale: blocca gli IP dei datacenter (cloud e GitHub), da casa dovrebbe funzionare; se mostra un controllo anti-robot Jarvis lo dice e lascia la pagina aperta |
 | Apertura app approvate | ✅ con adapter simulato; ❓ app reali sul PC |
 | File in una cartella autorizzata (elenca, leggi, crea, sposta, cestina con conferma) | ✅ |
 | Memoria su richiesta («ricorda che…», «cosa ricordi», «dimentica…»), ricerca nelle note | ✅ |

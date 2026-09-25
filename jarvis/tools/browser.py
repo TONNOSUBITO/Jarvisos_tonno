@@ -121,7 +121,12 @@ class WebSearchTool(Tool):
             if href:
                 results.append({"title": title[:200], "url": urljoin(page.url, href)})
         if not results:
-            return ToolResult(False, f"Nessun risultato per «{args['query']}» (selettore {cfg.result_selector})")
+            body = (await page.locator("body").inner_text()).lower()
+            blocked = any(w in body for w in ("captcha", "anomaly", "robot", "unusual traffic", "traffico insolito"))
+            why = ("il motore di ricerca ha mostrato un controllo anti-robot: risolvilo tu nella finestra di Jarvis"
+                   if blocked else f"pagina cambiata? selettore «{cfg.result_selector}» senza risultati")
+            return ToolResult(False, f"Nessun risultato per «{args['query']}»: {why}. La pagina resta aperta.",
+                              {"blocked": blocked})
         return ToolResult(True, f"Cercato «{args['query']}»: {len(results)} risultati",
                           {"results": results}, verified=True,
                           untrusted_text="\n".join(r["title"] for r in results))

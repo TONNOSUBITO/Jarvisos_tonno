@@ -63,16 +63,3 @@ jobs:
       - name: E2E voce dalla UI (microfono simulato, Windows)
         shell: powershell
         run: .\.venv\Scripts\python.exe tests\e2e_voice.py
-
-  # Internet vero: DuckDuckGo può cambiare pagina o bloccare i bot, quindi non blocca la CI.
-  web-reale:
-    runs-on: windows-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-      - run: python -m pip install -e .
-      - run: python -m playwright install chromium
-      - run: python tests/smoke_web.py
