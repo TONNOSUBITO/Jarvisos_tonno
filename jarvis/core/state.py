@@ -10,7 +10,6 @@ from typing import Any
 
 
 class Status(str, Enum):
-    LISTENING = "in_ascolto"
     TRANSCRIBING = "trascrizione"
     PLANNING = "pianificazione"
     AWAITING_CONFIRMATION = "attesa_conferma"
@@ -66,7 +65,6 @@ class Task:
     result: str = ""
     report: str = ""
     created_at: float = field(default_factory=time.time)
-    finished_at: float | None = None
 
     def add_log(self, msg: str) -> None:
         self.log.append(f"{time.strftime('%H:%M:%S')} {msg}")

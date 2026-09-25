@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import Any, Callable
+from typing import Any
 
 from jarvis.config import DeviceConfig
 from jarvis.core.report import build_report
@@ -65,13 +65,12 @@ def plan_for(intent: Intent) -> list[Action]:
 
 class Orchestrator:
     def __init__(self, config: DeviceConfig, router: IntentRouter, tools: list[Tool],
-                 audit: AuditLog, on_change: Callable[[Task], None] | None = None):
+                 audit: AuditLog):
         self.config = config
         self.router = router
         self.tools = {t.name: t for t in tools}
         self.policy = PermissionPolicy(config)
         self.audit = audit
-        self.on_change = on_change or (lambda t: None)
         self.tasks: dict[str, Task] = {}
         self._runners: dict[str, asyncio.Task] = {}
         self._confirm: dict[str, tuple[asyncio.Event, list[bool]]] = {}
@@ -142,12 +141,10 @@ class Orchestrator:
         task.status = status
         if msg:
             task.add_log(msg)
-        self.on_change(task)
 
     def _finish(self, task: Task, status: Status, result: str) -> None:
         task.pending = None
         task.result = result
-        task.finished_at = time.time()
         task.report = build_report(task, status)
         self._set(task, status, result)
         self.audit.write("task_end", task=task.id, status=status.value, result=result,
@@ -263,7 +260,6 @@ class Orchestrator:
             task.add_log("[contenuto esterno, non fidato] " + res.untrusted_text[:300].replace("\n", " "))
         self.audit.write("step", task=task.id, tool=tool_name, args=_loggable(args), ok=res.ok,
                          summary=res.summary, ms=ms)
-        self.on_change(task)
         return res
 
     async def _ask_confirmation(self, task: Task, tool: Tool, args: dict[str, Any]) -> bool:

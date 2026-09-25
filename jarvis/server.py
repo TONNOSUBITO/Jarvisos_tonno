@@ -103,12 +103,6 @@ def create_app(cfg: DeviceConfig, orch: Orchestrator, token: str | None = None,
     async def stop_all() -> dict:
         return {"stopped": await orch.stop()}
 
-    @app.post("/api/tasks/{task_id}/stop", dependencies=[Depends(auth)])
-    async def stop_one(task_id: str) -> dict:
-        if task_id not in orch.tasks:
-            raise HTTPException(404, "attività inesistente")
-        return {"stopped": await orch.stop(task_id)}
-
     @app.get("/api/info", dependencies=[Depends(auth)])
     async def info() -> dict:
         v = cfg.voice

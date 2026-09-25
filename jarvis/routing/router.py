@@ -17,8 +17,6 @@ from dataclasses import dataclass, field
 class Intent:
     kind: str  # open_app | web_search | web_search_open | web_open | note | stop | unknown
     slots: dict[str, str] = field(default_factory=dict)
-    level: int = 1
-    confidence: float = 1.0
 
 
 class IntentRouter(ABC):
@@ -90,4 +88,4 @@ class RuleRouter(IntentRouter):
             if kind == "open_app" and _URL.match(slots["app"]):
                 return Intent("web_open", {"url": slots["app"]})
             return Intent(kind, slots)
-        return Intent("unknown", {"text": t}, level=2, confidence=0.0)
+        return Intent("unknown", {"text": t})

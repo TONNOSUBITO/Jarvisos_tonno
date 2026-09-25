@@ -28,11 +28,12 @@ async def test_budget_and_paid_routes():
     paid = MockProvider(is_paid=True, cost_eur=0.01)
     with pytest.raises(PaidRouteDisabled):
         await GuardedProvider(paid, BudgetMeter(1), allow_paid=False).complete([])
-    g = GuardedProvider(paid, BudgetMeter(0.015), allow_paid=True, estimated_cost_eur=0.01)
+    g = GuardedProvider(paid, BudgetMeter(0.015), allow_paid=True)
     await g.complete([])
+    await g.complete([])  # spesi 0,01 < 0,015: ammessa, porta a 0,02
     with pytest.raises(BudgetExceeded):
         await g.complete([])
-    assert len(paid.calls) == 1
+    assert len(paid.calls) == 2
 
 
 async def test_openai_compatible_provider_with_mock_transport():

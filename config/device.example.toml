@@ -3,7 +3,6 @@
 
 [device]
 device_id = "portatile"          # es. "portatile" o "fisso": uno per PC
-# platform = "windows"           # rilevata automaticamente se omessa
 data_dir = "data"                # audit, profilo browser dedicato, modelli voce
 vault_dir = "data/vault"         # oppure una vault Obsidian DEDICATA (non quella personale intera)
 # work_dir = "C:/Users/tuonome/Documents/Jarvis"   # unica cartella in cui Jarvis gestisce file

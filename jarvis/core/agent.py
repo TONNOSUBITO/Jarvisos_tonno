@@ -35,8 +35,6 @@ def tool_schemas(orch: "Orchestrator") -> list[dict[str, Any]]:
 
     out = []
     for t in orch.tools.values():
-        if not t.agent_visible or not t.description:
-            continue
         if orch.policy.decide(t.capability) is Decision.DENY:
             continue  # il modello non vede ciò che non può usare
         if t.private_data and not orch.config.model.allow_private_data:
