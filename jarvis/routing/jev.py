@@ -16,13 +16,13 @@ import httpx
 from jarvis.providers.base import BudgetMeter
 from jarvis.routing.router import Intent, normalize
 
+# Niente "stop": fermare tutto per un errore di classificazione costa troppo; ci sono regole, Esc e il pulsante.
 INTENTS = {
     "open_app": "aprire o avviare un programma del computer",
     "web_search": "cercare informazioni su internet",
     "memory_list": "chiedere cosa Jarvis ricorda dell'utente",
     "files_list": "vedere l'elenco dei file",
     "vault_search": "cercare qualcosa nelle note personali",
-    "stop": "fermare o annullare quello che Jarvis sta facendo",
     "domanda": "domanda generale, conversazione o compito articolato",
     "altro": "nessuna delle altre opzioni o frase incomprensibile",
 }
