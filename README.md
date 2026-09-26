@@ -26,6 +26,22 @@ azioni delicate e ti risponde anche a voce. **Non è un sistema operativo**: «O
 
 ✅ = funziona ed è testato · ❓ = implementato, da verificare sul tuo PC · ❌ = non fatto
 
+## Novità (26/09/2026) e come attivarle
+Aggiorna: riscarica lo ZIP di `main`, estrailo sopra la cartella, `Get-ChildItem -Recurse | Unblock-File`,
+`python -m jarvis doctor`. `.env` e `config\device.toml` restano tuoi.
+
+| Novità | Attiva di default? | Come si usa |
+|---|---|---|
+| Voce che parte alla prima frase | sì | niente da fare |
+| Etichetta «capito da» sul risultato (regole / Jev / modello reale) | sì | niente da fare |
+| Avviso nelle conferme se il comando ha letto pagine o file | sì | niente da fare |
+| Skill: procedure che insegni a Jarvis | sì | «crea la skill email-cliente: rispondi cortese, firma Paolo» |
+| OmniRoute come primo provider (`auto`) | se attivi i modelli | riaccoda `config\providers.example.toml` (vedi sotto) e tieni OmniRoute acceso |
+| Preferenze in memoria al modello | no | `[model] share_memory = true` |
+| Router Jev (a pagamento, pochi centesimi) | no | vedi «Router Jev» più sotto; `doctor` dice se è pronto |
+
+Nulla di questo è stato provato sul tuo PC: se qualcosa non va, incolla l'output di `doctor`.
+
 ## Installazione
 
 Requisiti: Python **3.11, 3.12 o 3.13**, non 3.14, che la voce locale non supporta ancora
