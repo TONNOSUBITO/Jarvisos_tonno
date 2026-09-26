@@ -56,7 +56,7 @@ async def test_search_slot_and_no_budget():
     intent, _ = await jev(answer("web_search", 0.9)).route_async("cercami il meteo di domani a Roma")
     assert intent.slots == {"query": "il meteo di domani a Roma"}
     seen = []
-    intent, note = await jev(answer("stop", 0.99), budget=0, seen=seen).route_async("x")
+    intent, note = await jev(answer("web_search", 0.99), budget=0, seen=seen).route_async("x")
     assert intent.kind == "unknown" and not seen and "budget" in note
 
 
@@ -89,3 +89,12 @@ async def test_route_shown_for_rules_and_jev(cfg, apps):
     t = await o.wait(o.submit("mi serve fare due conti").id)
     assert t.route.startswith("Jev: open_app")
     await o.stop()
+
+
+async def test_jev_can_never_stop_everything():
+    """Anche se Jev rispondesse "stop" con certezza, non ferma le attività: intento non ammesso."""
+    seen = []
+    r = jev(answer("stop", 0.99), seen=seen)
+    assert "stop" not in r._questions()["intento"]["criteria"]
+    intent, _ = await r.route_async("basta così grazie")
+    assert intent.kind == "unknown"
