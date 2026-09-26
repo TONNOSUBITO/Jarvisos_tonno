@@ -192,11 +192,15 @@ class Orchestrator:
         # nel registro solo il comando (max 500 caratteri), mai l'audio
         self.audit.write("task_start", task=task.id, command=task.command, source=task.source)
         intent = self.router.route(task.command)
+        if intent.kind != "unknown":
+            task.route = "regole locali"
         if intent.kind == "unknown" and self.jev is not None:
             t0 = time.monotonic()
             intent, note = await self.jev.route_async(task.command)
             task.metrics["router_ms"] = round((time.monotonic() - t0) * 1000)
             task.add_log(note)
+            if intent.kind != "unknown":
+                task.route = note
             self.audit.write("jev", task=task.id, note=note, intent=intent.kind, ms=task.metrics["router_ms"])
         task.intent = intent.kind
         if intent.kind == "stop":

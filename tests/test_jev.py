@@ -79,3 +79,13 @@ async def test_orchestrator_uses_jev_only_after_rules(cfg, apps):
     t = await o.wait(o.submit("mi serve fare due conti").id)
     assert t.status is Status.DONE and len(seen) == 1 and apps.launched and "router_ms" in t.metrics
     await o.stop()
+
+
+async def test_route_shown_for_rules_and_jev(cfg, apps):
+    o = build_orchestrator(cfg, apps)
+    t = await o.wait(o.submit("apri calcolatrice").id)
+    assert t.route == "regole locali"
+    o.jev = jev(answer("open_app", 0.9, "calcolatrice"))
+    t = await o.wait(o.submit("mi serve fare due conti").id)
+    assert t.route.startswith("Jev: open_app")
+    await o.stop()

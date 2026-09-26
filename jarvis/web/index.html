@@ -43,6 +43,8 @@
        display: flex; align-items: center; gap: 8px; }
   h2::before { content: ""; width: 14px; height: 2px; background: var(--cyan); }
   .muted { color: var(--muted); font-size: 12.5px; }
+  .chip { display: inline-block; margin-bottom: 6px; padding: 1px 8px; border: 1px solid var(--cyan-dim);
+          color: var(--cyan); font-size: 11px; letter-spacing: .08em; }
   ul { margin: 4px 0; padding-left: 18px; } li { margin: 3px 0; }
   pre { white-space: pre-wrap; word-break: break-word; margin: 0; font: 12px/1.4 ui-monospace, Consolas, monospace; color: var(--muted); }
   .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; font-size: 12.5px; }
@@ -118,6 +120,7 @@
     </section>
     <section class="panel">
       <h2>RISULTATO</h2>
+      <span id="route" class="chip" hidden></span>
       <div id="result"></div>
       <p class="muted" id="report"></p>
       <p class="muted" id="metrics"></p>
@@ -347,6 +350,7 @@ function render(t) {
     if (s) li.className = s.ok ? "ok" : "ko";
   });
   $("result").textContent = t.result; $("report").textContent = t.report;
+  $("route").hidden = !t.route; $("route").textContent = t.route ? "capito da: " + t.route : "";
   const m = Object.entries(t.metrics || {}).map(([k, v]) => k + ": " + v);
   $("metrics").textContent = m.length ? "Misure: " + m.join(" · ") : "";
   $("log").textContent = t.log.join("\n");
