@@ -36,6 +36,7 @@ async def test_level2_answer_only(agent_cfg, apps):
     o = build_orchestrator(agent_cfg, apps, provider=p)
     t = await o.wait(o.submit("qual è la capitale d'Italia").id)
     assert t.status is Status.DONE and t.level == 2 and "Roma" in t.result and t.steps == []
+    assert t.route == "modello · mock"
     await o.stop()
 
 

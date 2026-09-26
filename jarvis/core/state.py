@@ -60,6 +60,7 @@ class Task:
     pending: PendingConfirmation | None = None
     source: str = "testo"  # testo | voce
     level: int = 1         # 1 regole, 2 risposta del modello, 3 agente con strumenti
+    route: str = ""        # chi ha capito il comando: regole / Jev / modello (mostrato nell'HUD)
     metrics: dict[str, float] = field(default_factory=dict)  # misure reali (ms, €)
     tainted: bool = False  # ha letto dati privati: le azioni web richiedono conferma
     result: str = ""

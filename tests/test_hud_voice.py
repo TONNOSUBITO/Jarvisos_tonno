@@ -12,7 +12,8 @@ from jarvis.core.state import Task
 HTML = (Path(__file__).parents[1] / "jarvis" / "web" / "index.html").read_text(encoding="utf-8")
 WAV = float32_to_wav(np.zeros(1600, np.float32), 16000)  # 0,1 s di silenzio
 RESULT = "Ciao. Oggi a Roma c'è il sole e fanno ventidue gradi. Domani pioverà per tutto il giorno."
-TASK = {**Task(command="meteo").to_dict(), "status": "completato", "result": RESULT, "report": RESULT}
+TASK = {**Task(command="meteo").to_dict(), "status": "completato", "result": RESULT, "report": RESULT,
+        "route": "regole locali"}
 
 
 async def run_page(wav, after_first=None):
@@ -56,8 +57,9 @@ async def run_page(wav, after_first=None):
             if len(tts_texts) >= 3:
                 break
             await pg.wait_for_timeout(50)
+        chip = await pg.inner_text("#route")
         await b.close()
-    return tts_texts, errors
+    return tts_texts, errors + ([] if chip == "capito da: regole locali" else [f"chip: {chip!r}"])
 
 
 async def test_speech_starts_with_first_sentence_and_queues_the_rest():
