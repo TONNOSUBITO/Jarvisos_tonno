@@ -278,15 +278,28 @@ document.addEventListener("keydown", (e) => {
 document.addEventListener("keyup", (e) => { if (e.code === "Space" && rec) { e.preventDefault(); stopRec(); } });
 
 // ---------- risposta vocale ----------
+// La risposta si divide in frasi: la prima si sintetizza e parte subito, le altre si preparano mentre parla.
+let speakGen = 0;
 function stopSpeaking() {
+  speakGen++;
   if (window.speechSynthesis) speechSynthesis.cancel();
   if (audioEl) { audioEl.pause(); audioEl = null; }
+}
+function chunks(text) {
+  const parts = (text.match(/[^.!?;:\n]+[.!?;:]*/g) || [text]).map(s => s.trim()).filter(Boolean);
+  const out = [];
+  for (const p of parts) {  // frasi troppo corte si uniscono alla precedente (tranne la prima: deve partire presto)
+    if (out.length > 1 && (p.length < 25 || out[out.length - 1].length < 25)) out[out.length - 1] += " " + p;
+    else out.push(p);
+  }
+  return out.length ? out : [text];
 }
 async function speak(t) {
   // parla solo per comandi dati da questa pagina, una volta
   if (!mine.has(t.id) || !INFO.speak_replies || INFO.tts === "none" || spokenFor.has(t.id) || !t.result) return;
   spokenFor.add(t.id);
   const text = t.result.slice(0, 600);
+  const gen = ++speakGen;
   const started = () => {
     if (lastRelease && t.source === "voce") {
       const ms = Math.round(performance.now() - lastRelease);
@@ -294,14 +307,25 @@ async function speak(t) {
       lastRelease = null;
     }
   };
+  const tts = (s) => { const p = api("POST", "/api/tts", { text: s }); p.catch(() => {}); return p; };
   try {
-    const r = await api("POST", "/api/tts", { text });
-    if (r) {
-      audioEl = new Audio(URL.createObjectURL(await r.blob()));
-      audioEl.onplaying = started; await audioEl.play(); return;
+    const parts = chunks(text);
+    let next = tts(parts[0]);
+    for (let i = 0; i < parts.length; i++) {
+      const r = await next;
+      if (gen !== speakGen) return;          // Stop o nuovo comando
+      if (!r) break;                         // 204: niente voce server → voce del browser
+      next = i + 1 < parts.length ? tts(parts[i + 1]) : null;  // prepara la frase dopo mentre questa suona
+      const a = audioEl = new Audio(URL.createObjectURL(await r.blob()));
+      if (i === 0) a.onplaying = started;
+      const done = new Promise(res => { a.onended = res; a.onpause = res; a.onerror = res; });
+      await a.play();
+      await done;
+      if (gen !== speakGen) return;
     }
+    if (next === null || gen !== speakGen) return;
   } catch (e) { $("micHint").textContent = "Voce server non disponibile (" + e.message + "): uso quella del browser"; }
-  if (window.speechSynthesis) {
+  if (window.speechSynthesis && gen === speakGen) {
     const u = new SpeechSynthesisUtterance(text); u.lang = "it-IT"; u.onstart = started; speechSynthesis.speak(u);
   }
 }
