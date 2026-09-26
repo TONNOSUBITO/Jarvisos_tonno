@@ -63,6 +63,7 @@ class Task:
     route: str = ""        # chi ha capito il comando: regole / Jev / modello (mostrato nell'HUD)
     metrics: dict[str, float] = field(default_factory=dict)  # misure reali (ms, €)
     tainted: bool = False  # ha letto dati privati: le azioni web richiedono conferma
+    read_external: bool = False  # ha letto testo esterno (web, file): le anteprime lo segnalano
     result: str = ""
     report: str = ""
     created_at: float = field(default_factory=time.time)
