@@ -113,3 +113,20 @@ def test_doctor_local_gateway_probe():
 
     assert _is_loopback("http://127.0.0.1:20128/v1") and not _is_loopback("https://api.groq.com/openai/v1")
     assert _local_models("http://127.0.0.1:9/v1") is None  # porta chiusa: nessuna eccezione
+
+
+def test_doctor_reports_jev(monkeypatch, capsys):
+    from jarvis.config import DeviceConfig
+    from jarvis.tools_cli import doctor
+
+    monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    cfg = DeviceConfig(app_adapter="mock")
+    cfg.voice.stt_engine, cfg.voice.tts_engine = "none", "none"
+    cfg.router.engine = "rules+jev"
+    doctor(cfg, "nessun-file.toml")
+    out = capsys.readouterr().out
+    assert "✖ Router Jev: chiave TYPESAFE_API_KEY MANCANTE" in out
+    monkeypatch.setenv("TYPESAFE_API_KEY", "k")
+    cfg.limits.budget_eur = 1.0
+    doctor(cfg, "nessun-file.toml")
+    assert "✔ Router Jev: chiave TYPESAFE_API_KEY presente, budget 1.0 € ok" in capsys.readouterr().out

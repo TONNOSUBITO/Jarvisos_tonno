@@ -158,5 +158,13 @@ def doctor(cfg: DeviceConfig, config_path: str | None) -> int:
                      else f"  «{p.name}» non risponde: avvialo (Jarvis passerà ai provider successivi)")
     else:
         line(None, "Modelli (livelli 2-3) disattivati")
+    r = cfg.router
+    if r.engine == "rules+jev":
+        key = bool(os.environ.get(r.jev_api_key_env))
+        line(key and cfg.limits.budget_eur > 0,
+             f"Router Jev: chiave {r.jev_api_key_env} {'presente' if key else 'MANCANTE'}, "
+             f"budget {cfg.limits.budget_eur} € {'ok' if cfg.limits.budget_eur > 0 else '(serve > 0)'}")
+    else:
+        line(None, "Router: solo regole locali (Jev disattivato)")
     print("Tutto pronto." if ok else "Ci sono problemi da risolvere (✖).")
     return 0 if ok else 1
