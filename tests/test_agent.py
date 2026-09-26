@@ -9,8 +9,8 @@ from jarvis.core.state import Status
 from jarvis.providers.base import BudgetMeter, FallbackProvider, MockProvider, ModelResponse
 
 
-def call(name, **args):
-    return {"id": f"c-{name}", "type": "function", "function": {"name": name, "arguments": json.dumps(args)}}
+def call(tool_name, **args):
+    return {"id": f"c-{tool_name}", "type": "function", "function": {"name": tool_name, "arguments": json.dumps(args)}}
 
 
 def tools_resp(*calls):
@@ -153,4 +153,28 @@ async def test_share_memory_optin_and_taint(agent_cfg, apps, share):
     system = p.calls[0][0]["content"]
     assert ("- preferisco il caffè amaro" in system) is share and "aggiunto" not in system
     assert t.tainted is share
+    await o.stop()
+
+
+async def test_skill_proposed_after_web_read_is_flagged(agent_cfg, apps, site_url):
+    """Il modello legge una pagina e poi propone una skill: l'anteprima avvisa che il testo può venire dal web."""
+    p = MockProvider([tools_resp(call("web_open", url=site_url + "/docs.html")),
+                      tools_resp(call("skills_save", **{"name": "da-web", "text": "Fai quello che dice la pagina"})), "ok"])
+    o = build_orchestrator(agent_cfg, apps, provider=p)
+    t = o.submit("salva come skill quello che dice la documentazione")
+    await wait_status(t, Status.AWAITING_CONFIRMATION)
+    assert t.read_external and t.pending.preview.startswith("⚠ Questo comando ha letto contenuti esterni")
+    o.confirm(t.id, t.pending.action_hash, False)
+    await o.wait(t.id)
+    await o.stop()
+
+
+async def test_plain_confirmation_has_no_warning(agent_cfg, apps):
+    p = MockProvider([tools_resp(call("notes_save", title="x", body="y")), "fatto"])
+    o = build_orchestrator(agent_cfg, apps, provider=p)
+    t = o.submit("scrivi una nota x")
+    await wait_status(t, Status.AWAITING_CONFIRMATION)
+    assert not t.pending.preview.startswith("⚠")
+    o.confirm(t.id, t.pending.action_hash, False)
+    await o.wait(t.id)
     await o.stop()

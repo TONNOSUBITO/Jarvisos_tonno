@@ -272,6 +272,8 @@ class Orchestrator:
         ms = int((time.monotonic() - t0) * 1000)
         if res.ok and tool.private_data:
             task.tainted = True
+        if res.untrusted_text:
+            task.read_external = True
         task.steps.append(StepRecord(tool_name, _loggable(args), res.ok, res.summary, res.verified, ms))
         task.add_log(("✔ " if res.ok else "✖ ") + res.summary)
         if res.untrusted_text:
@@ -282,7 +284,12 @@ class Orchestrator:
 
     async def _ask_confirmation(self, task: Task, tool: Tool, args: dict[str, Any]) -> bool:
         h = action_hash(task.id, tool.name, args)
-        task.pending = PendingConfirmation(h, tool.name, tool.preview(args))
+        preview = tool.preview(args)
+        if task.read_external:
+            # es. skill o nota proposte dal modello dopo aver letto una pagina: il testo può venire da lì
+            preview = ("⚠ Questo comando ha letto contenuti esterni (web o file): controlla che il testo qui sotto "
+                       "sia davvero tuo e non istruzioni copiate da una pagina.\n\n" + preview)
+        task.pending = PendingConfirmation(h, tool.name, preview)
         ev = asyncio.Event()
         box: list[bool] = []
         self._confirm[task.id] = (ev, box)
