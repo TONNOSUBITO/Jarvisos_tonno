@@ -54,7 +54,9 @@ _VERB_MAP = {"aprire": "apri", "aprimi": "apri", "apri mi": "apri", "cercare": "
              "trovare": "trova", "trovami": "trova", "avviare": "avvia", "ricordare": "ricorda",
              "fermare": "ferma", "preparare": "prepara", "preparami": "prepara", "creare": "crea",
              "scrivere": "scrivi", "scrivimi": "scrivi", "leggere": "leggi", "leggimi": "leggi",
-             "elencare": "elenca", "elencami": "elenca", "dimenticare": "dimentica"}
+             "elencare": "elenca", "elencami": "elenca", "dimenticare": "dimentica",
+             # storpiature di Whisper misurate (frasi sintetiche e voce reale dell'utente)
+             "circa": "cerca", "cierca": "cerca", "cercano": "cerca", "preparo": "prepara", "appri": "apri"}
 _VERBS = re.compile(r"^(" + "|".join(sorted(_VERB_MAP, key=len, reverse=True)) + r")\b", re.I)
 
 
@@ -68,6 +70,7 @@ def normalize(text: str) -> str:
     # forme cortesi/infinite del parlato → imperativo delle regole ("puoi aprire" → "apri")
     t = re.sub(r"^(?:per favore\s+)?(?:mi\s+)?(?:(?:puoi|potresti|riesci a|vorrei|voglio)\s+)?", "", t, flags=re.I)
     t = _VERBS.sub(lambda m: _VERB_MAP[m.group(1).lower()], t)
+    t = re.sub(r"^(\w+),\s*", r"\1 ", t)  # «Apri, blocco note» → «Apri blocco note»
     t = re.sub(r"\bappr[iì]\b", "apri", t, flags=re.I)  # Whisper sente «apri» come «apprì»
     return t.strip()
 

@@ -15,6 +15,7 @@ UI, router a regole, browser Playwright, app (mock), note con conferma, permessi
 | TTS del browser (speechSynthesis) come fallback | 🧪 dipende dalle voci italiane installate nel sistema |
 | Alternative rimosse (ponytail): whisper.cpp, Fish Audio, loader skill, tool bozza separato | ❌ tolte: nessun uso reale; riaggiungere solo se servono |
 | Precaricamento modelli all'avvio | ✅ |
+| Trascrizione guidata: suggerimento con i verbi dei comandi e le app approvate, `beam_size=5`; router tollerante a «circa/cierca/cercano/preparo/appri» | ✅ su 16 frasi sintetiche con rumore (2 voci Kokoro): intento giusto 6/16 → 16/16, ~1,2 s/frase su 4 thread cloud. Il router è stato adattato a quegli stessi errori: sulla voce reale il guadagno sarà minore, 🧪 da misurare |
 | Risposta vocale a frasi: la prima frase si sintetizza e parte subito, le successive si preparano mentre parla; Stop svuota la coda | ✅ in Chromium con API simulate; 🧪 guadagno reale sul Ryzen non misurato |
 | Misure reali: `stt_ms`, `audio_s`, `prima_risposta_audio_ms`, `model_ms` in UI e audit | ✅ |
 | `NativeAppAdapter` (Popen senza shell) | 🧪 |

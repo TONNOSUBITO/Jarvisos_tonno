@@ -50,6 +50,7 @@ def build_orchestrator(cfg: DeviceConfig, app_adapter: AppAdapter | None = None,
         provider = build_provider(cfg.model, orch.budget)
     if provider is not None:
         orch.agent = Agent(provider, use_tools=cfg.model.agent_tools, timeout_s=cfg.model.timeout_s)
-    orch.stt = stt if stt is not None else make_stt(cfg.voice.stt_engine, cfg.voice.stt_model, data)
+    orch.stt = stt if stt is not None else make_stt(cfg.voice.stt_engine, cfg.voice.stt_model, data,
+                                                         list(cfg.allowed_apps))
     orch.tts = tts if tts is not None else make_tts(cfg)
     return orch
